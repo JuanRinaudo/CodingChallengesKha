@@ -50,10 +50,10 @@ class SineCubesState extends AppState {
 	private var time:Float = 0;
 	private var cubesX:Int = 20;
 	private var cubesZ:Int = 20;
-	private var timeMultiplier:Float = 5;
-	private var distanceMultiplier:Float = 1;
-	private var minValue:Float = 1;
-	private var maxValue:Float = 10;
+	private var timeMultiplier:Float = 1.8;
+	private var distanceMultiplier:Float = -0.35;
+	private var minValue:Float = 5;
+	private var maxValue:Float = 15;
 	private var lastColor:Int = Color.White.value;
 	private var cubeColor:Int = Color.White.value;
 
@@ -62,7 +62,7 @@ class SineCubesState extends AppState {
 	private var lightDirection:FastVector3 = new FastVector3(0, -.3, -.5);
 	private var ambientLight:Color = Color.Black;
 	
-	private var cameraSize:Float = 20;
+	private var cameraSize:Float = 18;
 
 	private var ui:Zui;
 	
@@ -87,7 +87,7 @@ class SineCubesState extends AppState {
 		var size:Float = cameraSize;
 		projectionMatrix = FastMatrix4.orthogonalProjection(-size, size, -size, size, .1, 300);
 		viewMatrix = FastMatrix4.lookAt(
-			new FastVector3(0, 0, -50),
+			new FastVector3(0, 0, -100),
 			new FastVector3(0, 0, 0),
 			new FastVector3(0, 1, 0)
 		);
@@ -169,8 +169,8 @@ class SineCubesState extends AppState {
 				if(ui.panel(Id.handle({selected: true}), "General")) {
 					cubesX = Math.floor(ui.slider(Id.handle({value: cubesX}), "Cubes X", 1, 100, true, 1));
 					cubesZ = Math.floor(ui.slider(Id.handle({value: cubesZ}), "Cubes Z", 1, 100, true, 1));
-					timeMultiplier = ui.slider(Id.handle({value: timeMultiplier}), "Time Multiplier", 1, 10, true, 10);
-					distanceMultiplier = ui.slider(Id.handle({value: distanceMultiplier}), "Distance Multiplier", 0, 10, true, 100);
+					timeMultiplier = ui.slider(Id.handle({value: timeMultiplier}), "Time Multiplier", -5, 5, true, 10);
+					distanceMultiplier = ui.slider(Id.handle({value: distanceMultiplier}), "Distance Multiplier", -5, 5, true, 100);
 					minValue = ui.slider(Id.handle({value: minValue}), "Min Value", 0, 100, true, 10);
 					maxValue = ui.slider(Id.handle({value: maxValue}), "Max Value", 0, 100, true, 10);
 					if(ui.panel(Id.handle({selected: true}), "Cube Color")) {
