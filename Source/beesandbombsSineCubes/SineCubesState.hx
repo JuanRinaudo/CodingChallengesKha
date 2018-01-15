@@ -29,9 +29,6 @@ class SineCubesState extends AppState {
 	public static inline var CANVAS_HEIGHT:Int = 800;
 	public static inline var NAME:String = "Beesandbombs Sine Cubes";
 
-	public static inline var VERTEX_BUFFER_SIZE:Int = 8;
-	public static inline var INDEX_BUFFER_SIZE:Int = 6 * 6;
-
 	private var cubesPipeline:BasicPipeline;
 
 	private var vertexBuffer:VertexBuffer;
@@ -45,6 +42,8 @@ class SineCubesState extends AppState {
 
 	private var mvpLocation:ConstantLocation;
 	private var lightDirectionLocation:ConstantLocation;
+
+	private var mesh:STLMeshData;
 
 	private var uiToggle:Bool = true;
 
@@ -98,10 +97,12 @@ class SineCubesState extends AppState {
 	}
 
 	private inline function setupCube() {
-		vertexBuffer = new VertexBuffer(VERTEX_BUFFER_SIZE, cubesPipeline.vertexStructure, Usage.StaticUsage);
+		mesh = STLMeshLoader.load(Assets.blobs.cube_stl);
+
+		vertexBuffer = new VertexBuffer(mesh.vertexes.length, cubesPipeline.vertexStructure, Usage.StaticUsage);
 		setupCubeVertexes();
 
-		indexBuffer = new IndexBuffer(INDEX_BUFFER_SIZE, Usage.StaticUsage);
+		indexBuffer = new IndexBuffer(mesh.vertexes.length, Usage.StaticUsage);
 		setupCubeIndexes();
 
 		setupCubeColor();
@@ -206,11 +207,11 @@ class SineCubesState extends AppState {
 	private inline function setupCubeVertexes() {
 		var vertexes = vertexBuffer.lock();
 		var baseIndex:Int = 0;
-		for(i in 0...VERTEX_BUFFER_SIZE) {
+		for(i in 0...mesh.vertexCount) {
 			baseIndex = i * 12;
-			vertexes.set(baseIndex + 0, i % 2 - .5); //X
-			vertexes.set(baseIndex + 1, (i < 4) ? -.5 : .5); //Y
-			vertexes.set(baseIndex + 2, Math.floor((i % 4) / 2) - .5); //Z
+			vertexes.set(baseIndex + 0, mesh.vertexes.get(i * 3)); //X
+			vertexes.set(baseIndex + 1, mesh.vertexes.get(i * 3 + 1)); //Y
+			vertexes.set(baseIndex + 2, mesh.vertexes.get(i * 3 + 2)); //Z
 			vertexes.set(baseIndex + 3, 0); //UVX
 			vertexes.set(baseIndex + 4, 0); //UVY
 		}
@@ -221,7 +222,7 @@ class SineCubesState extends AppState {
 		var vertexes = vertexBuffer.lock();
 		var baseIndex:Int = 0;
 		var color:Color = Color.fromValue(cubeColor);
-		for(i in 0...VERTEX_BUFFER_SIZE) {
+		for(i in 0...mesh.vertexCount) {
 			baseIndex = i * 12;
 			vertexes.set(baseIndex + 5, color.R); //R
 			vertexes.set(baseIndex + 6, color.G); //G
@@ -233,126 +234,23 @@ class SineCubesState extends AppState {
 
 	private inline function setupCubeNormals() {
 		var vertexes = vertexBuffer.lock();
-		var indexes = indexBuffer.lock();
 		var baseIndex:Int = 0;
-		var normal:FastVector3;
-		// for(i in 0...VERTEX_BUFFER_SIZE) {
-		// 	normal = new FastVector3(0, 0, 0);
-		// 	for(j in 0...Math.floor(INDEX_BUFFER_SIZE / 3)) {
-		// 		var index:Int = vertexInTriangle(indexes, j * 3, i);
-		// 		if(index != -1) {
-		// 			normal = normal.add(calculateTriangleNormal(vertexes, indexes, j * 3, index));
-		// 		}
-		// 	}
-		// 	normal.normalize();
-		// 	baseIndex = i * 12;
-		// 	vertexes.set(baseIndex + 9, normal.x); //NX
-		// 	vertexes.set(baseIndex + 10, normal.y); //NY
-		// 	vertexes.set(baseIndex + 11, normal.z); //NZ
-		// }
-		vertexes.set(9, -1);
-		vertexes.set(10, 1);
-		vertexes.set(11, -1);
-		
-		vertexes.set(12 * 1 + 9, 1);
-		vertexes.set(12 * 1 + 10, 1);
-		vertexes.set(12 * 1 + 11, -1);
-		
-		vertexes.set(12 * 2 + 9, -1);
-		vertexes.set(12 * 2 + 10, 1);
-		vertexes.set(12 * 2 + 11, 1);
-		
-		vertexes.set(12 * 3 + 9, 1);
-		vertexes.set(12 * 3 + 10, 1);
-		vertexes.set(12 * 3 + 11, 1);
-		
-		vertexes.set(12 * 4 + 9, -1);
-		vertexes.set(12 * 4 + 10, -1);
-		vertexes.set(12 * 4 + 11, -1);
-		
-		vertexes.set(12 * 5 + 9, 1);
-		vertexes.set(12 * 5 + 10, -1);
-		vertexes.set(12 * 5 + 11, -1);
-		
-		vertexes.set(12 * 6 + 9, -1);
-		vertexes.set(12 * 6 + 10, -1);
-		vertexes.set(12 * 6 + 11, 1);
-		
-		vertexes.set(12 * 7 + 9, 1);
-		vertexes.set(12 * 7 + 10, -1);
-		vertexes.set(12 * 7 + 11, 1);
-		
+		var normalIndex:Int = 0;
+		for(i in 0...mesh.vertexCount) {
+			baseIndex = i * 12;
+			normalIndex = Math.floor(i / 3);
+			vertexes.set(baseIndex + 9, mesh.normals.get(normalIndex * 3)); //NX
+			vertexes.set(baseIndex + 10, mesh.normals.get(normalIndex * 3 + 1)); //NY
+			vertexes.set(baseIndex + 11, mesh.normals.get(normalIndex * 3 + 2)); //NZ
+		}
 		vertexBuffer.unlock();
-		indexBuffer.unlock();
-	}
-
-	private inline function vertexInTriangle(indexes:Uint32Array, indexesIndex:Int, vertex:Int):Int {
-		if(indexes.get(indexesIndex) == vertex) { return 0; }
-		else if(indexes.get(indexesIndex + 1) == vertex) { return 1; }
-		else if(indexes.get(indexesIndex + 2) == vertex) { return 2; }
-		else { return -1; }
-	}
-
-	private inline function calculateTriangleNormal(vertexes:Float32Array, indexes:Uint32Array, indexesIndex:Int, index:Int) {
-		var A:FastVector3 = getVertexPosition(vertexes, indexes.get(indexesIndex + index % 3));
-		var B:FastVector3 = getVertexPosition(vertexes, indexes.get(indexesIndex + (index + 1) % 3));
-		var C:FastVector3 = getVertexPosition(vertexes, indexes.get(indexesIndex + (index + 2) % 3));
-
-		var BminusA = B.sub(A);
-		var CminusA = C.sub(A);
-		var normal:FastVector3 = (BminusA).cross(CminusA);
-		var sin_alpha:Float = normal.length / (BminusA.length * CminusA.length);
-		normal.normalize();
-		return normal.mult(Math.asin(sin_alpha));
-	}
-
-	private inline function getVertexPosition(vertexes:Float32Array, index:Int):FastVector3 {
-		return new FastVector3(vertexes.get(index * 12), vertexes.get(index * 12 + 1), vertexes.get(index * 12 + 2));
 	}
 
 	private inline function setupCubeIndexes() {
 		var indices = indexBuffer.lock();
-		indices[0] = 0;
-		indices[1] = 2;
-		indices[2] = 3;
-		indices[3] = 3;
-		indices[4] = 0;
-		indices[5] = 1;
-		
-		indices[6] = 0;
-		indices[7] = 4;
-		indices[8] = 6;
-		indices[9] = 2;
-		indices[10] = 6;
-		indices[11] = 0;
-		
-		indices[12] = 1;
-		indices[13] = 5;
-		indices[14] = 7;
-		indices[15] = 3;
-		indices[16] = 7;
-		indices[17] = 1;
-		
-		indices[18] = 2;
-		indices[19] = 6;
-		indices[20] = 7;
-		indices[21] = 3;
-		indices[22] = 7;
-		indices[23] = 2;
-		
-		indices[24] = 0;
-		indices[25] = 4;
-		indices[26] = 5;
-		indices[27] = 1;
-		indices[28] = 5;
-		indices[29] = 0;
-		
-		indices[30] = 4;
-		indices[31] = 6;
-		indices[32] = 7;
-		indices[33] = 5;
-		indices[34] = 7;
-		indices[35] = 4;
+		for(i in 0...mesh.vertexCount) {
+			indices.set(i, i);
+		}
 		indexBuffer.unlock();
 	}
 
