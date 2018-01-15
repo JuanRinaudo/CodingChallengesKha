@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Empty</title>
+</head>
+<body>
+	<style>
+	body, html {
+		margin: 0;
+		padding: 0;		
+		overflow:hidden;
+		width: 100%;
+		height: 100%;
+		
+		-webkit-touch-callout: none; /* iOS Safari */
+		-webkit-user-select: none;   /* Chrome/Safari/Opera */
+		-khtml-user-select: none;    /* Konqueror */
+		-moz-user-select: none;      /* Firefox */
+		-ms-user-select: none;       /* Internet Explorer/Edge */
+		user-select: none;           /* Non-prefixed version, currently */
+	}
+	body {
+		background: black;
+	}
+	canvas {
+		outline: none;		
+		display: block;
+		margin: auto;
+		position: relative;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 100%;
+		height: 100%;
+	}
+	.game {
+		width: 100%;
+		height: 100%;
+	}
+	</style>
+	
+	<div class="game">
+		<canvas id="khanvas" width="800" height="720"></canvas>
+	</div>
+	<script src="kha.js"></script>
+</body>
+</html>
