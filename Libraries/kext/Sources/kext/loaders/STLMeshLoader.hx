@@ -30,8 +30,13 @@ class STLMeshLoader {
 		index+=4;
 
 		var mesh:STLMeshData = {
+			#if js
 			normals: new Float32Array(triangles * 3), //One V3 per normal
 			vertexes: new Float32Array(triangles * 9), //V3, one for each vertex in the triangle
+			#else
+			normals: new Float32Array(), //One V3 per normal
+			vertexes: new Float32Array(), //V3, one for each vertex in the triangle
+			#end
 			triangleCount: triangles,
 			vertexCount: triangles * 3
 		};

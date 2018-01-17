@@ -12,6 +12,7 @@ import kha.graphics4.VertexData;
 import kha.math.FastMatrix4;
 import kha.math.FastVector3;
 
+import kext.Application;
 import kext.AppState;
 import kext.g4basics.BasicPipeline;
 import kext.loaders.STLMeshLoader;
@@ -65,6 +66,13 @@ class SineCubesState extends AppState {
 	private var cameraSize:Float = 18;
 
 	private var ui:Zui;
+
+	public static function initApplication() {
+		return new Application(
+			{title: SineCubesState.NAME, width: SineCubesState.CANVAS_WIDTH, height: SineCubesState.CANVAS_HEIGHT},
+			{initState: SineCubesState}
+		);
+	}
 	
 	public function new() {
 		super();
@@ -134,10 +142,15 @@ class SineCubesState extends AppState {
 			lightDirection = new FastVector3(Math.sin(time * lightRotationSpeed), lightDirection.y, Math.cos(time * lightRotationSpeed));
 		}
 		lightDirection.normalize();
+		backbuffer.g4.setVector3(lightDirectionLocation, lightDirection);
 
 		if(cubeColor != lastColor) {
 			setupCubeColor();
 		}
+
+		var baseMatrix = projectionViewMatrix
+			.multmat(FastMatrix4.rotation(0, 0, Math.PI * .25))
+			.multmat(FastMatrix4.rotation(Math.PI * .25, 0, 0)); 
 
 		var x:Float = 0;
 		var z:Float = 0;
@@ -147,13 +160,10 @@ class SineCubesState extends AppState {
 				x = i - cubesX / 2;
 				z = j - cubesZ / 2;
 				distance = Math.sqrt(x * x + z * z);
-				mvpMatrix = projectionViewMatrix
-					.multmat(FastMatrix4.rotation(0, 0, Math.PI * .25))
-					.multmat(FastMatrix4.rotation(Math.PI * .25, 0, 0))
+				mvpMatrix = baseMatrix
 					.multmat(FastMatrix4.translation(x, 0, z))
 					.multmat(FastMatrix4.scale(1, Math.abs(Math.sin(time * timeMultiplier + distance * distanceMultiplier) * (maxValue - minValue)) + minValue, 1));
 				backbuffer.g4.setMatrix(mvpLocation, mvpMatrix);
-				backbuffer.g4.setVector3(lightDirectionLocation, lightDirection);
 
 				backbuffer.g4.drawIndexedVertices();
 			}
