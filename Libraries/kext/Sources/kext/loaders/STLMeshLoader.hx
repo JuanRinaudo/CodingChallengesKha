@@ -1,21 +1,26 @@
 package kext.loaders;
 
+import kext.g4basics.BasicMesh;
+
 import kha.Blob;
+import kha.Color;
+
+import kha.graphics4.VertexStructure;
+
 import kha.arrays.Float32Array;
-import kha.math.Vector3;
 
 typedef STLMeshData = {
 	normals:Float32Array,
 	vertexes:Float32Array,
-	triangleCount:Int,
-	vertexCount:Int
+	triangleCount:UInt,
+	vertexCount:UInt
 }
 
 class STLMeshLoader {
 
 	private static inline var HEADER_SIZE:Int = 80;
 
-	public static function load(blob:Blob):STLMeshData {
+	public static function parse(blob:Blob):STLMeshData {
 		var index:Int = 0;
 
 		var header:String;
@@ -65,5 +70,16 @@ class STLMeshLoader {
 
 		return mesh;
 	}
+	
+	public static inline function getBasicMesh(blob:Blob, structure:VertexStructure, vertexOffset:UInt, 
+		normalOffset:UInt, colorOffset:UInt = 0, color:Color = null):BasicMesh {
+		var objMeshData = parse(blob);
+		var mesh:BasicMesh = BasicMesh.fromSTLData(objMeshData, structure, vertexOffset, normalOffset);
+		if(color != null) {
+			BasicMesh.setAllVertexesColor(mesh, structure, colorOffset, color);
+		}
+		return mesh;
+	}
+
 
 }

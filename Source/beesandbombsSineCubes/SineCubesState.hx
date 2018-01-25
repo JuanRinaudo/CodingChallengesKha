@@ -4,49 +4,42 @@ import kha.Assets;
 import kha.Color;
 import kha.Shaders;
 import kha.Image;
-import kha.graphics4.VertexBuffer;
-import kha.graphics4.IndexBuffer;
-import kha.graphics4.Usage;
 import kha.graphics4.ConstantLocation;
-import kha.graphics4.VertexData;
+import kha.math.FastMatrix3;
 import kha.math.FastMatrix4;
 import kha.math.FastVector3;
+import kha.math.FastVector4;
 
 import kext.Application;
 import kext.AppState;
+import kext.g4basics.BasicMesh;
 import kext.g4basics.BasicPipeline;
 import kext.loaders.STLMeshLoader;
-import kext.loaders.STLMeshLoader.STLMeshData;
-
-import kha.arrays.Float32Array;
-import kha.arrays.Uint32Array;
 
 import zui.Zui;
 import zui.Ext;
 import zui.Id;
 
 class SineCubesState extends AppState {
-	public static inline var CANVAS_WIDTH:Int = 800;
-	public static inline var CANVAS_HEIGHT:Int = 800;
-	public static inline var NAME:String = "Beesandbombs Sine Cubes";
+	private static inline var CANVAS_WIDTH:Int = 800;
+	private static inline var CANVAS_HEIGHT:Int = 800;
+	private static inline var NAME:String = "Beesandbombs Sine Cubes";
 
 	private var cubesPipeline:BasicPipeline;
-
-	private var vertexBuffer:VertexBuffer;
-	private var indexBuffer:IndexBuffer;
 
 	private var projectionMatrix:FastMatrix4;
 	private var viewMatrix:FastMatrix4;
 	private var modelMatrix:FastMatrix4;
 	private var projectionViewMatrix:FastMatrix4;
-	private var mvpMatrix:FastMatrix4;
+	private var normalMatrix:FastMatrix3;
 
-	private var mvpLocation:ConstantLocation;
-	private var lightDirectionLocation:ConstantLocation;
+	private var locationMVPMatrix:ConstantLocation;
+	private var locationNormalMatrix:ConstantLocation;
+	private var locationDirectionalLight:ConstantLocation;
+	private var locationDirectionalColor:ConstantLocation;
+	private var locationAmbientLight:ConstantLocation;
 
-	private var mesh:STLMeshData;
-
-	private var uiToggle:Bool = true;
+	private var cubeMesh:BasicMesh;
 
 	private var time:Float = 0;
 	private var cubesX:Int = 20;
@@ -66,6 +59,7 @@ class SineCubesState extends AppState {
 	private var cameraSize:Float = 18;
 
 	private var ui:Zui;
+	private var uiToggle:Bool = true;
 
 	public static function initApplication() {
 		return new Application(
@@ -81,13 +75,15 @@ class SineCubesState extends AppState {
 		setupCube();
 		setupZUI();
 
-		mvpLocation = cubesPipeline.getConstantLocation("MVP");
-		lightDirectionLocation = cubesPipeline.getConstantLocation("LIGHT_POSITION");
+		locationMVPMatrix = cubesPipeline.getConstantLocation("MVP_MATRIX");
+		locationNormalMatrix = cubesPipeline.getConstantLocation("NORMAL_MATRIX");
+		locationDirectionalLight = cubesPipeline.getConstantLocation("LIGHT_DIRECTION");
+		locationDirectionalColor = cubesPipeline.getConstantLocation("LIGHT_COLOR");
+		locationAmbientLight = cubesPipeline.getConstantLocation("AMBIENT_COLOR");
 	}
 
 	private inline function setupPipeline() {
-		cubesPipeline = new BasicPipeline(Shaders.directionalLight_vert, Shaders.directionalLight_frag);
-		cubesPipeline.addVertexData("normal", VertexData.Float3);
+		cubesPipeline = new BasicPipeline(Shaders.directionalLighting_vert, Shaders.directionalLighting_frag);
 		cubesPipeline.compile();
 	}
 
@@ -101,20 +97,10 @@ class SineCubesState extends AppState {
 		);
 		modelMatrix = FastMatrix4.identity();
 		projectionViewMatrix = projectionMatrix.multmat(viewMatrix);
-		mvpMatrix = projectionViewMatrix.multmat(modelMatrix);
 	}
 
 	private inline function setupCube() {
-		mesh = STLMeshLoader.load(Assets.blobs.cube_stl);
-
-		vertexBuffer = new VertexBuffer(mesh.vertexes.length, cubesPipeline.vertexStructure, Usage.StaticUsage);
-		setupCubeVertexes();
-
-		indexBuffer = new IndexBuffer(mesh.vertexes.length, Usage.StaticUsage);
-		setupCubeIndexes();
-
-		setupCubeColor();
-		setupCubeNormals();
+		cubeMesh = STLMeshLoader.getBasicMesh(Assets.blobs.cube_stl, cubesPipeline.vertexStructure, 0, 3, 8, Color.White);
 	}
 
 	private inline function setupZUI() {
@@ -135,22 +121,26 @@ class SineCubesState extends AppState {
 	private inline function renderCubes(backbuffer:Image) {
 		backbuffer.g4.setPipeline(cubesPipeline);
 
-		backbuffer.g4.setVertexBuffer(vertexBuffer);
-		backbuffer.g4.setIndexBuffer(indexBuffer);
+		backbuffer.g4.setVertexBuffer(cubeMesh.vertexBuffer);
+		backbuffer.g4.setIndexBuffer(cubeMesh.indexBuffer);
 
 		if(lightRotation) {
 			lightDirection = new FastVector3(Math.sin(time * lightRotationSpeed), lightDirection.y, Math.cos(time * lightRotationSpeed));
 		}
 		lightDirection.normalize();
-		backbuffer.g4.setVector3(lightDirectionLocation, lightDirection);
+		backbuffer.g4.setVector3(locationDirectionalLight, lightDirection);
+		backbuffer.g4.setVector4(locationDirectionalColor, new FastVector4(1, 1, 1, 1));
+		backbuffer.g4.setVector4(locationAmbientLight, new FastVector4(0, 0, 0, 0));
 
 		if(cubeColor != lastColor) {
-			setupCubeColor();
+			BasicMesh.setAllVertexesColor(cubeMesh, cubesPipeline.vertexStructure, 8, cubeColor);
 		}
 
-		var baseMatrix = projectionViewMatrix
+		var modelViewMatrix:FastMatrix4;
+		var mvpMatrix:FastMatrix4;
+		var baseMatrix:FastMatrix4 = FastMatrix4.identity()
 			.multmat(FastMatrix4.rotation(0, 0, Math.PI * .25))
-			.multmat(FastMatrix4.rotation(Math.PI * .25, 0, 0)); 
+			.multmat(FastMatrix4.rotation(Math.PI * .25, 0, 0));
 
 		var x:Float = 0;
 		var z:Float = 0;
@@ -160,10 +150,15 @@ class SineCubesState extends AppState {
 				x = i - cubesX / 2;
 				z = j - cubesZ / 2;
 				distance = Math.sqrt(x * x + z * z);
-				mvpMatrix = baseMatrix
+				modelViewMatrix = baseMatrix
 					.multmat(FastMatrix4.translation(x, 0, z))
-					.multmat(FastMatrix4.scale(1, Math.abs(Math.sin(time * timeMultiplier + distance * distanceMultiplier) * (maxValue - minValue)) + minValue, 1));
-				backbuffer.g4.setMatrix(mvpLocation, mvpMatrix);
+					.multmat(FastMatrix4.scale(.5, (Math.abs(Math.sin(time * timeMultiplier + distance * distanceMultiplier) * (maxValue - minValue)) + minValue) * .5, .5));
+				mvpMatrix = projectionViewMatrix.multmat(modelViewMatrix);
+				backbuffer.g4.setMatrix(locationMVPMatrix, mvpMatrix);
+				normalMatrix = new FastMatrix3(modelViewMatrix._00, modelViewMatrix._10, modelViewMatrix._20,
+					modelViewMatrix._01, modelViewMatrix._11, modelViewMatrix._21,
+					modelViewMatrix._02, modelViewMatrix._12, modelViewMatrix._22).inverse().transpose();
+				backbuffer.g4.setMatrix3(locationNormalMatrix, normalMatrix);
 
 				backbuffer.g4.drawIndexedVertices();
 			}
@@ -212,56 +207,6 @@ class SineCubesState extends AppState {
 
 	override public function update(delta:Float) {
 		time += delta;
-	}
-
-	private inline function setupCubeVertexes() {
-		var vertexes = vertexBuffer.lock();
-		var baseIndex:Int = 0;
-		for(i in 0...mesh.vertexCount) {
-			baseIndex = i * 12;
-			vertexes.set(baseIndex + 0, mesh.vertexes.get(i * 3)); //X
-			vertexes.set(baseIndex + 1, mesh.vertexes.get(i * 3 + 1)); //Y
-			vertexes.set(baseIndex + 2, mesh.vertexes.get(i * 3 + 2)); //Z
-			vertexes.set(baseIndex + 3, 0); //UVX
-			vertexes.set(baseIndex + 4, 0); //UVY
-		}
-		vertexBuffer.unlock();
-	}
-
-	private inline function setupCubeColor() {
-		var vertexes = vertexBuffer.lock();
-		var baseIndex:Int = 0;
-		var color:Color = Color.fromValue(cubeColor);
-		for(i in 0...mesh.vertexCount) {
-			baseIndex = i * 12;
-			vertexes.set(baseIndex + 5, color.R); //R
-			vertexes.set(baseIndex + 6, color.G); //G
-			vertexes.set(baseIndex + 7, color.B); //B
-			vertexes.set(baseIndex + 8, color.A); //A
-		}
-		vertexBuffer.unlock();
-	}
-
-	private inline function setupCubeNormals() {
-		var vertexes = vertexBuffer.lock();
-		var baseIndex:Int = 0;
-		var normalIndex:Int = 0;
-		for(i in 0...mesh.vertexCount) {
-			baseIndex = i * 12;
-			normalIndex = Math.floor(i / 3);
-			vertexes.set(baseIndex + 9, mesh.normals.get(normalIndex * 3)); //NX
-			vertexes.set(baseIndex + 10, mesh.normals.get(normalIndex * 3 + 1)); //NY
-			vertexes.set(baseIndex + 11, mesh.normals.get(normalIndex * 3 + 2)); //NZ
-		}
-		vertexBuffer.unlock();
-	}
-
-	private inline function setupCubeIndexes() {
-		var indices = indexBuffer.lock();
-		for(i in 0...mesh.vertexCount) {
-			indices.set(i, i);
-		}
-		indexBuffer.unlock();
 	}
 
 }

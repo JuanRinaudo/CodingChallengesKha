@@ -7,10 +7,10 @@ in vec4 color;
 out vec4 fragmentColor;
 out vec2 texCoord;
 
-uniform mat4 MVP;
+uniform mat4 MVP_MATRIX;
 
 void main() {
-	gl_Position = MVP * vec4(position, 1.0);
+	gl_Position = MVP_MATRIX * vec4(position, 1.0);
 	fragmentColor = color;
 	texCoord = texuv;
 }

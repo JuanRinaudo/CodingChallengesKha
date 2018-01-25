@@ -27,10 +27,13 @@ class Application {
 	private var currentState:AppState;
 
 	public static var backbuffer:Image;
+	public static var time:Float = 0;
+	public static var deltaTime:Float = 0;
 
 	public function new(systemOptions:SystemOptions, applicationOptions:ApplicationOptions) {
 		sysOptions = systemOptions;
 		options = defaultApplicationOptions(applicationOptions);
+		deltaTime = options.updatePeriod;
 		System.init(systemOptions, onInit);
 	}
 
@@ -67,6 +70,7 @@ class Application {
 
 	private function updatePass() {
 		if(currentState != null) {
+			time += options.updatePeriod;
 			currentState.update(options.updatePeriod);
 		}
 	}
