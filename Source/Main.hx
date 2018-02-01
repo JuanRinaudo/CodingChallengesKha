@@ -1,9 +1,9 @@
 package;
 
 import kext.Application;
-import beesandbombsSineCubes.SineCubesState;
+// import beesandbombsSineCubes.SineCubesState;
 import simpleChallenges.SimpleLighting;
-import shaderChallenges.TransitionShaders;
+// import shaderChallenges.TransitionShaders;
 
 class Main {
 	private static var application:Application;

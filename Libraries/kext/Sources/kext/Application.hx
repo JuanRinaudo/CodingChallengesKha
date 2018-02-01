@@ -20,9 +20,7 @@ import kext.events.LoadCompleteEvent;
 import kha.graphics4.TextureFormat;
 import kha.graphics4.DepthStencilFormat;
 
-#if debug
 import kext.debug.Debug;
-#end
 
 typedef ApplicationOptions = {
 	?updateStart:Float,
@@ -54,15 +52,19 @@ class Application {
 
 	private static var nextID:UInt = 0;
 
-	#if debug
 	private var debug:Debug;
-	#end
 
 	public function new(systemOptions:SystemOptions, applicationOptions:ApplicationOptions) {
 		sysOptions = systemOptions;
 		options = defaultApplicationOptions(applicationOptions);
 		
 		deltaTime = options.updatePeriod;
+
+		#if js
+		var game = js.Browser.document.getElementById("game");
+		game.style.width = systemOptions.width + "px";
+		game.style.height = systemOptions.height + "px";
+		#end
 
 		System.init(systemOptions, onInit);
 	}
@@ -75,9 +77,7 @@ class Application {
 	}
 
 	private function onInit() {
-		#if debug
 		debug = new Debug();
-		#end
 
 		gamepad = new GamepadInput();
 		keyboard = new KeyboardInput();
@@ -106,9 +106,7 @@ class Application {
 			currentState.render(backbuffer);
 		}
 		
-		#if debug
 		debug.render(backbuffer);
-		#end
 
 		framebuffer.g2.begin();
 		Scaler.scale(backbuffer, framebuffer, System.screenRotation);
@@ -121,9 +119,7 @@ class Application {
 			currentState.update(options.updatePeriod);
 		}
 
-		#if debug
 		debug.update(options.updatePeriod);
-		#end
 	}
 
 	public static function getNextID():UInt {
