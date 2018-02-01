@@ -53,7 +53,7 @@ class SineCubesState extends AppState {
 
 	private var lightRotation:Bool = false;
 	private var lightRotationSpeed:Float = 1;
-	private var lightDirection:FastVector3 = new FastVector3(0, -.3, -.5);
+	private var lightDirection:FastVector4 = new FastVector4(0, -.3, -.5, 0);
 	private var ambientLight:Color = Color.Black;
 	
 	private var cameraSize:Float = 18;
@@ -73,7 +73,7 @@ class SineCubesState extends AppState {
 
 		setupPipeline();
 		setupCube();
-		setupZUI();
+		ui = createZUI();
 
 		locationMVPMatrix = cubesPipeline.getConstantLocation("MVP_MATRIX");
 		locationNormalMatrix = cubesPipeline.getConstantLocation("NORMAL_MATRIX");
@@ -91,7 +91,7 @@ class SineCubesState extends AppState {
 		var size:Float = cameraSize;
 		projectionMatrix = FastMatrix4.orthogonalProjection(-size, size, -size, size, .1, 300);
 		viewMatrix = FastMatrix4.lookAt(
-			new FastVector3(0, 0, -100),
+			new FastVector3(-100, -100, -100),
 			new FastVector3(0, 0, 0),
 			new FastVector3(0, 1, 0)
 		);
@@ -101,10 +101,6 @@ class SineCubesState extends AppState {
 
 	private inline function setupCube() {
 		cubeMesh = STLMeshLoader.getBasicMesh(Assets.blobs.cube_stl, cubesPipeline.vertexStructure, 0, 3, 8, Color.White);
-	}
-
-	private inline function setupZUI() {
-		ui = new Zui({font: Assets.fonts.KenPixel});
 	}
 
 	override public function render(backbuffer:Image) {
@@ -125,22 +121,22 @@ class SineCubesState extends AppState {
 		backbuffer.g4.setIndexBuffer(cubeMesh.indexBuffer);
 
 		if(lightRotation) {
-			lightDirection = new FastVector3(Math.sin(time * lightRotationSpeed), lightDirection.y, Math.cos(time * lightRotationSpeed));
+			lightDirection = new FastVector4(Math.sin(time * lightRotationSpeed), lightDirection.y, Math.cos(time * lightRotationSpeed), 0);
 		}
 		lightDirection.normalize();
-		backbuffer.g4.setVector3(locationDirectionalLight, lightDirection);
+		backbuffer.g4.setVector4(locationDirectionalLight, viewMatrix.multvec(lightDirection));
 		backbuffer.g4.setVector4(locationDirectionalColor, new FastVector4(1, 1, 1, 1));
-		backbuffer.g4.setVector4(locationAmbientLight, new FastVector4(0, 0, 0, 0));
+		backbuffer.g4.setVector4(locationAmbientLight, new FastVector4(0, 0, 0, 1));
 
 		if(cubeColor != lastColor) {
 			BasicMesh.setAllVertexesColor(cubeMesh, cubesPipeline.vertexStructure, 8, cubeColor);
 		}
 
-		var modelViewMatrix:FastMatrix4;
+		var modelMatrix:FastMatrix4;
 		var mvpMatrix:FastMatrix4;
-		var baseMatrix:FastMatrix4 = FastMatrix4.identity()
-			.multmat(FastMatrix4.rotation(0, 0, Math.PI * .25))
-			.multmat(FastMatrix4.rotation(Math.PI * .25, 0, 0));
+		// var baseMatrix:FastMatrix4 = FastMatrix4.identity()
+			// .multmat(FastMatrix4.rotation(0, 0, Math.PI * .25))
+			// .multmat(FastMatrix4.rotation(Math.PI * .25, 0, 0));
 
 		var x:Float = 0;
 		var z:Float = 0;
@@ -150,11 +146,14 @@ class SineCubesState extends AppState {
 				x = i - cubesX / 2;
 				z = j - cubesZ / 2;
 				distance = Math.sqrt(x * x + z * z);
-				modelViewMatrix = baseMatrix
+				modelMatrix = FastMatrix4.identity()
 					.multmat(FastMatrix4.translation(x, 0, z))
 					.multmat(FastMatrix4.scale(.5, (Math.abs(Math.sin(time * timeMultiplier + distance * distanceMultiplier) * (maxValue - minValue)) + minValue) * .5, .5));
-				mvpMatrix = projectionViewMatrix.multmat(modelViewMatrix);
+				
+				mvpMatrix = projectionViewMatrix.multmat(modelMatrix);
 				backbuffer.g4.setMatrix(locationMVPMatrix, mvpMatrix);
+				
+				var modelViewMatrix:FastMatrix4 = viewMatrix.multmat(modelMatrix);
 				normalMatrix = new FastMatrix3(modelViewMatrix._00, modelViewMatrix._10, modelViewMatrix._20,
 					modelViewMatrix._01, modelViewMatrix._11, modelViewMatrix._21,
 					modelViewMatrix._02, modelViewMatrix._12, modelViewMatrix._22).inverse().transpose();

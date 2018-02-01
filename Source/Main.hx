@@ -10,8 +10,8 @@ class Main {
 	
 	public static function main() {
 		// application = SineCubesState.initApplication(); //Challenge 001
-		// application = SimpleLighting.initApplication(); //Challenge 002
-		application = TransitionShaders.initApplication(); //Challenge 003
+		application = SimpleLighting.initApplication(); //Challenge 002
+		// application = TransitionShaders.initApplication(); //Challenge 003
 	}
 
 }

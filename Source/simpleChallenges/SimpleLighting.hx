@@ -7,6 +7,7 @@ import kha.Shaders;
 
 import kha.math.FastMatrix4;
 import kha.math.FastMatrix3;
+import kha.math.Vector3;
 import kha.math.FastVector3;
 import kha.math.FastVector4;
 import kha.graphics4.ConstantLocation;
@@ -17,13 +18,14 @@ import kext.g4basics.BasicMesh;
 import kext.g4basics.BasicPipeline;
 import kext.loaders.STLMeshLoader;
 import kext.loaders.OBJMeshLoader;
+import kext.debug.Debug;
 
 import zui.Zui;
 import zui.Ext;
 import zui.Id;
 
 class SimpleLighting extends AppState {
-	private static inline var CANVAS_WIDTH:Int = 800;
+	private static inline var CANVAS_WIDTH:Int = 1600;
 	private static inline var CANVAS_HEIGHT:Int = 800;
 	private static inline var NAME:String = "Simple Lighting";
 
@@ -39,8 +41,6 @@ class SimpleLighting extends AppState {
 	private var suzanneSTLMesh:BasicMesh;
 	private var carFormulaSTLMesh:BasicMesh;
 
-	private var locationMVPMatrix:ConstantLocation;
-	private var locationNormalMatrix:ConstantLocation;
 	private var locationDirectionalLight:ConstantLocation;
 	private var locationDirectionalColor:ConstantLocation;
 	private var locationAmbientLight:ConstantLocation;
@@ -52,7 +52,7 @@ class SimpleLighting extends AppState {
 	private var mvpMatrix:FastMatrix4;
 	private var normalMatrix:FastMatrix3;
 
-	private var directionalLight:FastVector3;
+	private var directionalLight:FastVector4;
 	private var directionalColor:Color;
 	private var ambientLight:Color;
 	private var deltaAngle:FastVector3;
@@ -75,21 +75,20 @@ class SimpleLighting extends AppState {
 
 		pipeline = new BasicPipeline(Shaders.directionalLighting_vert, Shaders.directionalLighting_frag);
 		pipeline.compile();
-		locationMVPMatrix = pipeline.getConstantLocation("MVP_MATRIX");
-		locationNormalMatrix = pipeline.getConstantLocation("NORMAL_MATRIX");
 		locationDirectionalLight = pipeline.getConstantLocation("LIGHT_DIRECTION");
 		locationDirectionalColor = pipeline.getConstantLocation("LIGHT_COLOR");
 		locationAmbientLight = pipeline.getConstantLocation("AMBIENT_COLOR");
 
-		directionalLight = new FastVector3(0, 1, 0);
+		directionalLight = new FastVector4(0, 1, 0, 0);
 		directionalColor = Color.fromFloats(1, 0, 0, 1);
 		ambientLight = Color.fromFloats(.2, .2, .2, 1);
 		deltaAngle = new FastVector3(0, 0, 1);
 		meshScale = new FastVector3(1, 1, 1);
 		var size:UInt = 5;
-		projectionMatrix = FastMatrix4.orthogonalProjection(-size, size, size, -size, .1, 100);
+		var ratio:Float = CANVAS_WIDTH / CANVAS_HEIGHT;
+		projectionMatrix = FastMatrix4.orthogonalProjection(-size * ratio, size * ratio, size, -size, .1, 100);
 		viewMatrix = FastMatrix4.lookAt(
-			new FastVector3(-5, 5, -5),
+			new FastVector3(-1, 1, -1).mult(20),
 			new FastVector3(0, 0, 0),
 			new FastVector3(0, 1, 0)
 		);
@@ -112,11 +111,7 @@ class SimpleLighting extends AppState {
 		carFormulaOBJMesh = OBJMeshLoader.getBasicMesh(Assets.blobs.carFormula_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
 		carFormulaSTLMesh = STLMeshLoader.getBasicMesh(Assets.blobs.carFormula_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
 
-		setupZUI();
-	}
-
-	private inline function setupZUI() {
-		ui = new Zui({font: Assets.fonts.KenPixel});
+		ui = createZUI();
 	}
 
 	override public function render(backbuffer:Image) {
@@ -130,6 +125,14 @@ class SimpleLighting extends AppState {
 
 		backbuffer.g4.setPipeline(pipeline);
 
+		drawMesh(backbuffer);
+
+		Debug.drawDebugCube(backbuffer, projectionViewMatrix, new Vector3(directionalLight.x, directionalLight.y, directionalLight.z).mult(5), 0.1);
+
+		backbuffer.g4.end();
+	}
+
+	private inline function drawMesh(backbuffer:Image) {
 		switch(meshType) {
 			case MeshType.CUBE_OBJ:
 				setBufferMesh(backbuffer, cubeOBJMesh);
@@ -152,8 +155,6 @@ class SimpleLighting extends AppState {
 			case MeshType.CAR_FORMULA_STL:
 				setBufferMesh(backbuffer, carFormulaSTLMesh);
 		}
-
-		// directionalLight = new FastVector3(Math.sin(Application.time), directionalLight.y, Math.cos(Application.time));
 		
 		modelMatrix = FastMatrix4.identity()
 			.multmat(FastMatrix4.scale(meshScale.x, meshScale.y, meshScale.z))
@@ -165,15 +166,14 @@ class SimpleLighting extends AppState {
 			modelViewMatrix._01, modelViewMatrix._11, modelViewMatrix._21,
 			modelViewMatrix._02, modelViewMatrix._12, modelViewMatrix._22).inverse().transpose();
 
-		backbuffer.g4.setMatrix(locationMVPMatrix, mvpMatrix);
-		backbuffer.g4.setMatrix3(locationNormalMatrix, normalMatrix);
-		backbuffer.g4.setVector3(locationDirectionalLight, directionalLight);
+		backbuffer.g4.setMatrix(pipeline.locationMVPMatrix, mvpMatrix);
+		backbuffer.g4.setMatrix(pipeline.locationViewMatrix, viewMatrix);
+		backbuffer.g4.setMatrix3(pipeline.locationNormalMatrix, normalMatrix);
+		backbuffer.g4.setVector4(locationDirectionalLight, viewMatrix.multvec(directionalLight));
 		backbuffer.g4.setVector4(locationAmbientLight, new FastVector4(ambientLight.R, ambientLight.G, ambientLight.B, ambientLight.A));
 		backbuffer.g4.setVector4(locationDirectionalColor, new FastVector4(directionalColor.R, directionalColor.G, directionalColor.B, directionalColor.A));
 
 		backbuffer.g4.drawIndexedVertices();
-
-		backbuffer.g4.end();
 	}
 
 	private inline function renderUI(backbuffer:Image) {
@@ -185,21 +185,21 @@ class SimpleLighting extends AppState {
 					meshScale.x = ui.slider(Id.handle({value: meshScale.x}), "Mesh Scale X", 0.01, 4, true, 100, true);
 					meshScale.y = ui.slider(Id.handle({value: meshScale.y}), "Mesh Scale Y", 0.01, 4, true, 100, true);
 					meshScale.z = ui.slider(Id.handle({value: meshScale.z}), "Mesh Scale Z", 0.01, 4, true, 100, true);
-					deltaAngle.x = ui.slider(Id.handle({value: deltaAngle.x}), "Delta Angle X", -1, 1, true, 100, true);
-					deltaAngle.y = ui.slider(Id.handle({value: deltaAngle.y}), "Delta Angle Y", -1, 1, true, 100, true);
-					deltaAngle.z = ui.slider(Id.handle({value: deltaAngle.z}), "Delta Angle Z", -1, 1, true, 100, true);
+					deltaAngle.x = ui.slider(Id.handle({value: deltaAngle.x}), "Delta Angle X", -5, 5, true, 100, true);
+					deltaAngle.y = ui.slider(Id.handle({value: deltaAngle.y}), "Delta Angle Y", -5, 5, true, 100, true);
+					deltaAngle.z = ui.slider(Id.handle({value: deltaAngle.z}), "Delta Angle Z", -5, 5, true, 100, true);
 				}
 				if(ui.panel(Id.handle({selected: true}), "Mesh Type")) {
-					if(ui.button("Cube Smooth")) { meshType = MeshType.CUBE_OBJ; }
-					if(ui.button("Sphere Smooth")) { meshType = MeshType.SPHERE_OBJ; }
-					if(ui.button("Torus Smooth")) { meshType = MeshType.TORUS_OBJ; }
-					if(ui.button("Suzanne Smooth")) { meshType = MeshType.SUZANNE_OBJ; }
-					if(ui.button("Racing Car Smooth")) { meshType = MeshType.CAR_FORMULA_OBJ; }
-					if(ui.button("Cube Vertex")) { meshType = MeshType.CUBE_STL; }
-					if(ui.button("Sphere Vertex")) { meshType = MeshType.SPHERE_STL; }
-					if(ui.button("Torus Vertex")) { meshType = MeshType.TORUS_STL; }
-					if(ui.button("Suzanne Vertex")) { meshType = MeshType.SUZANNE_STL; }
-					if(ui.button("Racing Car Vertex")) { meshType = MeshType.CAR_FORMULA_STL; }
+					if(ui.button("Cube OBJ")) { meshType = MeshType.CUBE_OBJ; }
+					if(ui.button("Sphere OBJ")) { meshType = MeshType.SPHERE_OBJ; }
+					if(ui.button("Torus OBJ")) { meshType = MeshType.TORUS_OBJ; }
+					if(ui.button("Suzanne OBJ")) { meshType = MeshType.SUZANNE_OBJ; }
+					if(ui.button("Racing Car OBJ")) { meshType = MeshType.CAR_FORMULA_OBJ; }
+					if(ui.button("Cube STL")) { meshType = MeshType.CUBE_STL; }
+					if(ui.button("Sphere STL")) { meshType = MeshType.SPHERE_STL; }
+					if(ui.button("Torus STL")) { meshType = MeshType.TORUS_STL; }
+					if(ui.button("Suzanne STL")) { meshType = MeshType.SUZANNE_STL; }
+					if(ui.button("Racing Car STL")) { meshType = MeshType.CAR_FORMULA_STL; }
 				}
 				if(ui.panel(Id.handle({selected: true}), "Lighting")) {
 					directionalLight.x = ui.slider(Id.handle({value: directionalLight.x}), "Light Direction X", -1, 1, true, 100, true);

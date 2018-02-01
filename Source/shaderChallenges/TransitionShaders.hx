@@ -40,6 +40,7 @@ class TransitionShaders extends AppState {
 
 	private var screenMatrix:FastMatrix4;
 
+	private var time:Float = 0;
 	private var transition:Float = 0;
 	private var tilesX:Int = 1;
 	private var tilesY:Int = 1;
@@ -73,11 +74,7 @@ class TransitionShaders extends AppState {
 
 		screenMatrix = FastMatrix4.orthogonalProjection(-1, 1, -1, 1, 0, 1000);
 		
-		setupZUI();
-	}
-
-	private inline function setupZUI() {
-		ui = new Zui({font: Assets.fonts.KenPixel});
+		ui = createZUI();
 	}
 
 	override public function render(backbuffer:Image) {
@@ -104,7 +101,8 @@ class TransitionShaders extends AppState {
 	}
 	
 	override public function update(delta:Float) {
-		transition = Math.abs((transition + transitionDelta * Application.deltaTime + 1) % 1);
+		time += Application.deltaTime * transitionDelta;
+		transition = Math.abs(time % 2 - 1);
 		transitionHandle.value = Math.floor(transition * 100) / 100;
 	}
 
@@ -121,6 +119,8 @@ class TransitionShaders extends AppState {
 					tilesY = Math.floor(ui.slider(Id.handle({value: tilesY}), "Tiles Y", 0, 100, true, 1));
 				}
 				if(ui.panel(Id.handle({selected: true}), "Fade Effect")) {
+					ui.text("Texture");
+					ui.image(fadeTexture);
 					if(ui.button("BottomTop")) { fadeTexture = Assets.images.FadeTextureBottomTop; }
 					if(ui.button("Counterclockwise")) { fadeTexture = Assets.images.FadeTextureCounterClockwise; }
 					if(ui.button("Center Circular")) { fadeTexture = Assets.images.FadeTextureCenterCircular; }

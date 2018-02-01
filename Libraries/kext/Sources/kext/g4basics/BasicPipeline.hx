@@ -21,6 +21,10 @@ class BasicPipeline extends PipelineState {
 	public var viewMatrix:FastMatrix4;
 
 	public var locationMVPMatrix:ConstantLocation;
+	public var locationModelMatrix:ConstantLocation;
+	public var locationProjectionMatrix:ConstantLocation;
+	public var locationViewMatrix:ConstantLocation;
+	public var locationProjectionViewMatrix:ConstantLocation;
 	public var locationNormalMatrix:ConstantLocation;
 	public var locationAmbientColor:ConstantLocation;
 
@@ -67,6 +71,10 @@ class BasicPipeline extends PipelineState {
 		super.compile();
 
 		locationMVPMatrix = getConstantLocation("MVP_MATRIX");
+		locationModelMatrix = getConstantLocation("MODEL_MATRIX");
+		locationViewMatrix = getConstantLocation("VIEW_MATRIX");
+		locationProjectionMatrix = getConstantLocation("PROJECTION_MATRIX");
+		locationProjectionViewMatrix = getConstantLocation("VP_MATRIX");
 		locationNormalMatrix = getConstantLocation("NORMAL_MATRIX");
 		locationAmbientColor = getConstantLocation("AMBIENT_COLOR");
 
