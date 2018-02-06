@@ -1,9 +1,12 @@
 package kext.g4basics;
 
 import kha.Color;
+import kha.Image;
+import kha.Blob;
 
 import kha.arrays.Float32Array;
 
+import kha.math.Vector3;
 import kha.math.FastMatrix4;
 
 import kha.graphics4.VertexBuffer;
@@ -11,7 +14,9 @@ import kha.graphics4.IndexBuffer;
 import kha.graphics4.VertexStructure;
 import kha.graphics4.Usage;
 
+import kext.loaders.STLMeshLoader;
 import kext.loaders.STLMeshLoader.STLMeshData;
+import kext.loaders.OBJMeshLoader;
 import kext.loaders.OBJMeshLoader.OBJMeshData;
 
 class BasicMesh {
@@ -21,13 +26,72 @@ class BasicMesh {
 
 	public var modelMatrix:FastMatrix4;
 
+	public var position(default, null):Vector3;
+	public var rotation(default, null):Vector3;
+	public var size(default, null):Vector3;
+
 	public function new(vertexCount:Int, indexCount:Int, structure:VertexStructure, vertexUsage:Usage = null, indexUsage:Usage = null) {
 		if(vertexUsage == null) { vertexUsage = Usage.StaticUsage; }
 		if(indexUsage == null) { indexUsage = Usage.StaticUsage; }
 		vertexBuffer = new VertexBuffer(vertexCount, structure, vertexUsage);
 		indexBuffer = new IndexBuffer(indexCount, indexUsage);
 
-		modelMatrix = FastMatrix4.identity();
+		position = new Vector3(0, 0, 0);
+		rotation = new Vector3(0, 0, 0);
+		size = new Vector3(1, 1, 1);
+		recalculateModelMatrix();
+	}
+
+	public inline function setBufferMesh(backbuffer:Image) {
+		backbuffer.g4.setVertexBuffer(vertexBuffer);
+		backbuffer.g4.setIndexBuffer(indexBuffer);
+	}
+
+	public inline function translate(x:Float, y:Float, z:Float) {
+		position.add(new Vector3(x, y, z));
+		modelMatrix = modelMatrix.multmat(FastMatrix4.translation(x, y, z));
+	}
+
+	public inline function rotate(yaw:Float, pitch:Float, roll:Float) {
+		rotation.add(new Vector3(yaw, pitch, roll));
+		modelMatrix = modelMatrix.multmat(FastMatrix4.rotation(yaw, pitch, roll));
+	}
+
+	public inline function scale(x:Float, y:Float, z:Float) {
+		size.add(new Vector3(x, y, z));
+		modelMatrix = modelMatrix.multmat(FastMatrix4.scale(x, y, z));
+	}
+
+	public inline function recalculateModelMatrix() {
+		modelMatrix = FastMatrix4.identity()
+			.multmat(FastMatrix4.rotation(rotation.x, rotation.y, rotation.z))
+			.multmat(FastMatrix4.translation(position.x, position.y, position.z))
+			.multmat(FastMatrix4.scale(size.x, size.y, size.z));
+	}
+
+	public function setPosition(x:Float, y:Float, z:Float) {
+		position.setFrom(new Vector3(x, y, z));
+		recalculateModelMatrix();
+	}
+
+	public function setRotation(yaw:Float, pitch:Float, roll:Float) {
+		rotation.setFrom(new Vector3(yaw, pitch, roll));
+		recalculateModelMatrix();
+	}
+
+	public function setSize(x:Float, y:Float, z:Float) {
+		size.setFrom(new Vector3(x, y, z));
+		recalculateModelMatrix();
+	}
+	
+	public static inline function getSTLMesh(blob:Blob, structure:VertexStructure, vertexOffset:UInt, 
+		normalOffset:UInt, colorOffset:UInt = 0, color:Color = null):BasicMesh {
+		var objMeshData = STLMeshLoader.parse(blob);
+		var mesh:BasicMesh = BasicMesh.fromSTLData(objMeshData, structure, vertexOffset, normalOffset);
+		if(color != null) {
+			BasicMesh.setAllVertexesColor(mesh, structure, colorOffset, color);
+		}
+		return mesh;
 	}
 
 	public static function fromSTLData(data:STLMeshData, structure:VertexStructure, vertexOffset:Int, normalsOffset:Int, vertexUsage:Usage = null, indexUsage:Usage = null):BasicMesh {
@@ -59,6 +123,16 @@ class BasicMesh {
 		}
 		mesh.indexBuffer.unlock();
 
+		return mesh;
+	}
+
+	public static inline function getOBJMesh(blob:Blob, structure:VertexStructure, vertexOffset:UInt,
+		normalOffset:UInt, uvOffset:UInt, colorOffset:UInt = 0, color:Color = null):BasicMesh {
+		var objMeshData = OBJMeshLoader.parse(blob);
+		var mesh:BasicMesh = BasicMesh.fromOBJData(objMeshData, structure, vertexOffset, normalOffset, uvOffset);
+		if(color != null) {
+			BasicMesh.setAllVertexesColor(mesh, structure, colorOffset, color);
+		}
 		return mesh;
 	}
 

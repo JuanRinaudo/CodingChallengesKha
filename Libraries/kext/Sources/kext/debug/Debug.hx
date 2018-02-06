@@ -39,7 +39,7 @@ class Debug extends Basic {
 	}
 
 	private function loadCompleteHandler() {
-		cube = OBJMeshLoader.getBasicMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
+		cube = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
 	}
 
 	public static function drawDebugCube(backbuffer:Image, projectionViewMatrix:FastMatrix4, position:Vector3, size:Float) {

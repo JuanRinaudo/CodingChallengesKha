@@ -60,9 +60,6 @@ class SimpleLighting extends AppState {
 
 	private var meshType:MeshType = MeshType.CUBE_OBJ;
 
-	private var ui:Zui;
-	private var uiToggle:Bool = true;
-
 	public static function initApplication() {
 		return new Application(
 			{title: SimpleLighting.NAME, width: SimpleLighting.CANVAS_WIDTH, height: SimpleLighting.CANVAS_HEIGHT},
@@ -96,22 +93,20 @@ class SimpleLighting extends AppState {
 		projectionViewMatrix = projectionMatrix.multmat(viewMatrix);
 		mvpMatrix = projectionViewMatrix.multmat(modelMatrix);
 
-		cubeOBJMesh = OBJMeshLoader.getBasicMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		cubeSTLMesh = STLMeshLoader.getBasicMesh(Assets.blobs.cube_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		cubeOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
+		cubeSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
 
-		sphereOBJMesh = OBJMeshLoader.getBasicMesh(Assets.blobs.sphere_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		sphereSTLMesh = STLMeshLoader.getBasicMesh(Assets.blobs.sphere_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		sphereOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.sphere_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
+		sphereSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.sphere_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
 
-		torusOBJMesh = OBJMeshLoader.getBasicMesh(Assets.blobs.torus_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		torusSTLMesh = STLMeshLoader.getBasicMesh(Assets.blobs.torus_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		torusOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.torus_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
+		torusSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.torus_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
 
-		suzanneOBJMesh = OBJMeshLoader.getBasicMesh(Assets.blobs.suzanne_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		suzanneSTLMesh = STLMeshLoader.getBasicMesh(Assets.blobs.suzanne_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		suzanneOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.suzanne_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
+		suzanneSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.suzanne_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
 		
-		carFormulaOBJMesh = OBJMeshLoader.getBasicMesh(Assets.blobs.carFormula_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		carFormulaSTLMesh = STLMeshLoader.getBasicMesh(Assets.blobs.carFormula_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
-
-		ui = createZUI();
+		carFormulaOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.carFormula_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
+		carFormulaSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.carFormula_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
 	}
 
 	override public function render(backbuffer:Image) {
@@ -135,25 +130,25 @@ class SimpleLighting extends AppState {
 	private inline function drawMesh(backbuffer:Image) {
 		switch(meshType) {
 			case MeshType.CUBE_OBJ:
-				setBufferMesh(backbuffer, cubeOBJMesh);
+				cubeOBJMesh.setBufferMesh(backbuffer);
 			case MeshType.SPHERE_OBJ:
-				setBufferMesh(backbuffer, sphereOBJMesh);
+				sphereOBJMesh.setBufferMesh(backbuffer);
 			case MeshType.TORUS_OBJ:
-				setBufferMesh(backbuffer, torusOBJMesh);
+				torusOBJMesh.setBufferMesh(backbuffer);
 			case MeshType.SUZANNE_OBJ:
-				setBufferMesh(backbuffer, suzanneOBJMesh);
+				suzanneOBJMesh.setBufferMesh(backbuffer);
 			case MeshType.CAR_FORMULA_OBJ:
-				setBufferMesh(backbuffer, carFormulaOBJMesh);
+				carFormulaOBJMesh.setBufferMesh(backbuffer);
 			case MeshType.CUBE_STL:
-				setBufferMesh(backbuffer, cubeSTLMesh);
+				cubeSTLMesh.setBufferMesh(backbuffer);
 			case MeshType.TORUS_STL:
-				setBufferMesh(backbuffer, torusSTLMesh);
+				torusSTLMesh.setBufferMesh(backbuffer);
 			case MeshType.SPHERE_STL:
-				setBufferMesh(backbuffer, sphereSTLMesh);
+				sphereSTLMesh.setBufferMesh(backbuffer);
 			case MeshType.SUZANNE_STL:
-				setBufferMesh(backbuffer, suzanneSTLMesh);
+				suzanneSTLMesh.setBufferMesh(backbuffer);
 			case MeshType.CAR_FORMULA_STL:
-				setBufferMesh(backbuffer, carFormulaSTLMesh);
+				carFormulaSTLMesh.setBufferMesh(backbuffer);
 		}
 		
 		modelMatrix = FastMatrix4.identity()

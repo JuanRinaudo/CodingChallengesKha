@@ -46,10 +46,6 @@ class TransitionShaders extends AppState {
 	private var tilesY:Int = 1;
 	private var transitionDelta:Float = 0.5;
 
-	private var ui:Zui;
-	private var uiToggle:Bool = true;
-	private var transitionHandle:Handle = new Handle();
-
     public static function initApplication():Application {
 		return new Application(
 			{title: TransitionShaders.NAME, width: TransitionShaders.CANVAS_WIDTH, height: TransitionShaders.CANVAS_HEIGHT},
@@ -67,21 +63,19 @@ class TransitionShaders extends AppState {
 		locationTilesX = pipeline.getConstantLocation("TILES_X");
 		locationTilesY = pipeline.getConstantLocation("TILES_Y");
 
-		quad = OBJMeshLoader.getBasicMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.Black);
+		quad = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.Black);
 		quad.modelMatrix = FastMatrix4.identity().multmat(FastMatrix4.rotation(0, 0, Math.PI * 0.5));
 
 		fadeTexture = Assets.images.FadeTextureBottomTop;
 
 		screenMatrix = FastMatrix4.orthogonalProjection(-1, 1, -1, 1, 0, 1000);
-		
-		ui = createZUI();
 	}
 
 	override public function render(backbuffer:Image) {
 		beginAndClear(backbuffer, Color.White);
 
-		backbuffer.g4.setTexture(pipeline.locationTexture, fadeTexture);
-		backbuffer.g4.setTextureParameters(pipeline.locationTexture, TextureAddressing.Repeat, TextureAddressing.Repeat,
+		backbuffer.g4.setTexture(pipeline.textureUnit, fadeTexture);
+		backbuffer.g4.setTextureParameters(pipeline.textureUnit, TextureAddressing.Repeat, TextureAddressing.Repeat,
 			TextureFilter.PointFilter, TextureFilter.PointFilter, MipMapFilter.NoMipFilter);
 
 		backbuffer.g4.setPipeline(pipeline);
@@ -91,7 +85,7 @@ class TransitionShaders extends AppState {
 		backbuffer.g4.setInt(locationTilesY, tilesY);
 		backbuffer.g4.setMatrix(pipeline.locationMVPMatrix, screenMatrix.multmat(quad.modelMatrix));
 
-		setBufferMesh(backbuffer, quad);
+		quad.setBufferMesh(backbuffer);
 
 		backbuffer.g4.drawIndexedVertices();
 
@@ -103,7 +97,6 @@ class TransitionShaders extends AppState {
 	override public function update(delta:Float) {
 		time += Application.deltaTime * transitionDelta;
 		transition = Math.abs(time % 2 - 1);
-		transitionHandle.value = Math.floor(transition * 100) / 100;
 	}
 
 	private inline function renderUI(backbuffer:Image) {

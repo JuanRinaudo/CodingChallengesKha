@@ -10,8 +10,13 @@ import zui.Zui;
 
 class AppState extends Basic {
 
+	private var ui:Zui;
+	private var uiToggle:Bool = true;
+
 	public function new() {
 		super();
+
+		createZUI();
 	}
 
 	private inline function beginAndClear(backbuffer:Image, clearColor:Color = null) {
@@ -20,12 +25,7 @@ class AppState extends Basic {
 	}
 
 	private inline function createZUI() {
-		return new Zui({font: Assets.fonts.KenPixel});
-	}
-
-	private inline function setBufferMesh(backbuffer:Image, mesh:BasicMesh) {
-		backbuffer.g4.setVertexBuffer(mesh.vertexBuffer);
-		backbuffer.g4.setIndexBuffer(mesh.indexBuffer);
+		ui = new Zui({font: Assets.fonts.KenPixel});
 	}
 
 }

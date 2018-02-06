@@ -5,8 +5,7 @@ import kha.Image;
 class Basic {
 
 	public var ID:UInt = 0;
-	public var name(get, set):String;
-	private var _name:String;
+	public var name(default, set):String;
 
 	public function new() {
 		ID = Application.getNextID();
@@ -23,12 +22,8 @@ class Basic {
 		#end
 	}
 
-	public function get_name():String {
-		return _name;
-	}
 	public function set_name(value:String):String {
-		_name = value + ' ($ID)';
-		return _name;
+		return name = value + ' ($ID)';
 	}
 	
 }

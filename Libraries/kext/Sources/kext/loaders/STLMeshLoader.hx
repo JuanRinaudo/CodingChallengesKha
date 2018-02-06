@@ -1,11 +1,6 @@
 package kext.loaders;
 
-import kext.g4basics.BasicMesh;
-
 import kha.Blob;
-import kha.Color;
-
-import kha.graphics4.VertexStructure;
 
 import kha.arrays.Float32Array;
 
@@ -70,16 +65,5 @@ class STLMeshLoader {
 
 		return mesh;
 	}
-	
-	public static inline function getBasicMesh(blob:Blob, structure:VertexStructure, vertexOffset:UInt, 
-		normalOffset:UInt, colorOffset:UInt = 0, color:Color = null):BasicMesh {
-		var objMeshData = parse(blob);
-		var mesh:BasicMesh = BasicMesh.fromSTLData(objMeshData, structure, vertexOffset, normalOffset);
-		if(color != null) {
-			BasicMesh.setAllVertexesColor(mesh, structure, colorOffset, color);
-		}
-		return mesh;
-	}
-
 
 }

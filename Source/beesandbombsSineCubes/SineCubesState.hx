@@ -58,9 +58,6 @@ class SineCubesState extends AppState {
 	
 	private var cameraSize:Float = 18;
 
-	private var ui:Zui;
-	private var uiToggle:Bool = true;
-
 	public static function initApplication() {
 		return new Application(
 			{title: SineCubesState.NAME, width: SineCubesState.CANVAS_WIDTH, height: SineCubesState.CANVAS_HEIGHT},
@@ -73,7 +70,6 @@ class SineCubesState extends AppState {
 
 		setupPipeline();
 		setupCube();
-		ui = createZUI();
 
 		locationMVPMatrix = cubesPipeline.getConstantLocation("MVP_MATRIX");
 		locationNormalMatrix = cubesPipeline.getConstantLocation("NORMAL_MATRIX");
@@ -100,7 +96,7 @@ class SineCubesState extends AppState {
 	}
 
 	private inline function setupCube() {
-		cubeMesh = STLMeshLoader.getBasicMesh(Assets.blobs.cube_stl, cubesPipeline.vertexStructure, 0, 3, 8, Color.White);
+		cubeMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, cubesPipeline.vertexStructure, 0, 3, 8, Color.White);
 	}
 
 	override public function render(backbuffer:Image) {
@@ -117,8 +113,7 @@ class SineCubesState extends AppState {
 	private inline function renderCubes(backbuffer:Image) {
 		backbuffer.g4.setPipeline(cubesPipeline);
 
-		backbuffer.g4.setVertexBuffer(cubeMesh.vertexBuffer);
-		backbuffer.g4.setIndexBuffer(cubeMesh.indexBuffer);
+		cubeMesh.setBufferMesh(backbuffer)
 
 		if(lightRotation) {
 			lightDirection = new FastVector4(Math.sin(time * lightRotationSpeed), lightDirection.y, Math.cos(time * lightRotationSpeed), 0);

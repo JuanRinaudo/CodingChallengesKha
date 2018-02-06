@@ -1,17 +1,12 @@
 package kext.loaders;
 
-import kext.g4basics.BasicMesh;
-
 import kha.Blob;
-import kha.Color;
 
 import kha.math.Vector2;
 import kha.math.Vector3;
 
 import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
-
-import kha.graphics4.VertexStructure;
 
 typedef OBJMeshData = {
 	vertexes:Float32Array,
@@ -112,16 +107,6 @@ class OBJMeshLoader {
 			index++;
 		}
 		
-		return mesh;
-	}
-
-	public static inline function getBasicMesh(blob:Blob, structure:VertexStructure, vertexOffset:UInt,
-		normalOffset:UInt, uvOffset:UInt, colorOffset:UInt = 0, color:Color = null):BasicMesh {
-		var objMeshData = parse(blob);
-		var mesh:BasicMesh = BasicMesh.fromOBJData(objMeshData, structure, vertexOffset, normalOffset, uvOffset);
-		if(color != null) {
-			BasicMesh.setAllVertexesColor(mesh, structure, colorOffset, color);
-		}
 		return mesh;
 	}
 
