@@ -63,7 +63,7 @@ class TransitionShaders extends AppState {
 		locationTilesX = pipeline.getConstantLocation("TILES_X");
 		locationTilesY = pipeline.getConstantLocation("TILES_Y");
 
-		quad = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.Black);
+		quad = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.Black);
 		quad.modelMatrix = FastMatrix4.identity().multmat(FastMatrix4.rotation(0, 0, Math.PI * 0.5));
 
 		fadeTexture = Assets.images.FadeTextureBottomTop;
@@ -90,8 +90,6 @@ class TransitionShaders extends AppState {
 		backbuffer.g4.drawIndexedVertices();
 
 		backbuffer.g4.end();
-
-		renderUI(backbuffer);
 	}
 	
 	override public function update(delta:Float) {
@@ -99,7 +97,7 @@ class TransitionShaders extends AppState {
 		transition = Math.abs(time % 2 - 1);
 	}
 
-	private inline function renderUI(backbuffer:Image) {
+	override public function renderUI(backbuffer:Image) {
 		ui.begin(backbuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");

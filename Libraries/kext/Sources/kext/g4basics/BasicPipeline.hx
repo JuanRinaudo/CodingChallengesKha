@@ -82,6 +82,10 @@ class BasicPipeline extends PipelineState {
 		viewMatrix = FastMatrix4.lookAt(from, to, upVector);
 	}
 
+	public function cameraLookAtXYZ(fromX:Float, fromY:Float, fromZ:Float, toX:Float, toY:Float, toZ:Float) {
+		viewMatrix = FastMatrix4.lookAt(new FastVector3(fromX, fromY, fromZ), new FastVector3(toX, toY, toZ), upVector);
+	}
+
 	public function orthogonal(size:Float, aspectRatio:Float) {
 		perspectiveCamera = null;
 		orthogonalCamera = {size: size, aspectRatio: aspectRatio};

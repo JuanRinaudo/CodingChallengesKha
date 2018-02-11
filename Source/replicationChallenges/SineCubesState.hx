@@ -1,4 +1,4 @@
-package beesandbombsSineCubes;
+package replicationChallenges;
 
 import kha.Assets;
 import kha.Color;
@@ -96,7 +96,7 @@ class SineCubesState extends AppState {
 	}
 
 	private inline function setupCube() {
-		cubeMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, cubesPipeline.vertexStructure, 0, 3, 8, Color.White);
+		cubeMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, cubesPipeline.vertexStructure, Color.White);
 	}
 
 	override public function render(backbuffer:Image) {
@@ -106,14 +106,12 @@ class SineCubesState extends AppState {
 		backbuffer.g4.clear(Color.Black, Math.POSITIVE_INFINITY);
 
 		renderCubes(backbuffer);
-
-		renderUI(backbuffer);
 	}
 
 	private inline function renderCubes(backbuffer:Image) {
 		backbuffer.g4.setPipeline(cubesPipeline);
 
-		cubeMesh.setBufferMesh(backbuffer)
+		cubeMesh.setBufferMesh(backbuffer);
 
 		if(lightRotation) {
 			lightDirection = new FastVector4(Math.sin(time * lightRotationSpeed), lightDirection.y, Math.cos(time * lightRotationSpeed), 0);
@@ -124,7 +122,7 @@ class SineCubesState extends AppState {
 		backbuffer.g4.setVector4(locationAmbientLight, new FastVector4(0, 0, 0, 1));
 
 		if(cubeColor != lastColor) {
-			BasicMesh.setAllVertexesColor(cubeMesh, cubesPipeline.vertexStructure, 8, cubeColor);
+			BasicMesh.setAllVertexesColor(cubeMesh, cubesPipeline.vertexStructure, cubeColor);
 		}
 
 		var modelMatrix:FastMatrix4;
@@ -160,7 +158,7 @@ class SineCubesState extends AppState {
 		backbuffer.g4.end();
 	}
 
-	private inline function renderUI(backbuffer:Image) {
+	override public function renderUI(backbuffer:Image) {
 		ui.begin(backbuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");

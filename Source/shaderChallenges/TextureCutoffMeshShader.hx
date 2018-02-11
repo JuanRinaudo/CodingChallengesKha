@@ -69,7 +69,7 @@ class TextureCutoffMeshShader extends AppState {
 		locationLightColor = pipeline.getConstantLocation("LIGHT_COLOR");
 		locationAmbientColor = pipeline.getConstantLocation("AMBIENT_COLOR");
 
-		DemoMeshes.init(pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
+		DemoMeshes.init(pipeline.vertexStructure, Color.White);
 		mesh = DemoMeshes.CUBE_OBJ;
 
 		meshScale = new Vector3(1, 1, 1);
@@ -93,7 +93,6 @@ class TextureCutoffMeshShader extends AppState {
 
 	override public function render(backbuffer:Image) {
 		renderMesh(backbuffer);
-		renderUI(backbuffer);
 	}
 
 	private inline function renderMesh(backbuffer:Image) {
@@ -141,7 +140,7 @@ class TextureCutoffMeshShader extends AppState {
 		fadeTexture.g2.end();
 	}
 
-	private function renderUI(backbuffer:Image) {
+	override public function renderUI(backbuffer:Image) {
 		var createTextureClicked:Bool = false;
 		ui.begin(backbuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {

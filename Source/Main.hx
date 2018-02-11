@@ -1,10 +1,11 @@
 package;
 
 import kext.Application;
-// import beesandbombsSineCubes.SineCubesState;
-import simpleChallenges.SimpleLighting;
+// import replicationChallenges.SineCubesState;
+// import simpleChallenges.SimpleLighting;
 // import shaderChallenges.TransitionShaders;
-import shaderChallenges.TextureCutoffMeshShader;
+// import shaderChallenges.TextureCutoffMeshShader;
+import shaderChallenges.PostProcessingShader;
 
 class Main {
 	private static var application:Application;
@@ -13,7 +14,8 @@ class Main {
 		// application = SineCubesState.initApplication(); //Challenge 001
 		// application = SimpleLighting.initApplication(); //Challenge 002
 		// application = TransitionShaders.initApplication(); //Challenge 003
-		application = TextureCutoffMeshShader.initApplication(); //Challenge 003
+		// application = TextureCutoffMeshShader.initApplication(); //Challenge 004
+		application = PostProcessingShader.initApplication(); //Challenge 005
 	}
 
 }

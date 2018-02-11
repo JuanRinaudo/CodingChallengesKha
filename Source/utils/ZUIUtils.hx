@@ -1,6 +1,7 @@
 package utils;
 
 import kha.Color;
+import kha.math.Vector2;
 import kha.math.Vector3;
 import kha.math.FastVector4;
 import kext.g4basics.BasicMesh;
@@ -10,6 +11,11 @@ import zui.Ext;
 import zui.Id;
 
 class ZUIUtils {
+
+	public static inline function vector2Sliders(ui:Zui, handle: Handle, vector:Vector2, label:String, from:Float, to:Float, precision:Int) {
+		vector.x = ui.slider(handle.nest(0, {value: vector.x}), '$label X', from, to, true, precision, true);
+		vector.y = ui.slider(handle.nest(1, {value: vector.y}), '$label Y', from, to, true, precision, true);
+	}
 
 	public static inline function vector3Sliders(ui:Zui, handle: Handle, vector:Vector3, label:String, from:Float, to:Float, precision:Int) {
 		vector.x = ui.slider(handle.nest(0, {value: vector.x}), '$label X', from, to, true, precision, true);

@@ -22,6 +22,11 @@ class Basic {
 		#end
 	}
 
+	public function renderUI(backbuffer:Image) {
+		#if debug
+		#end
+	}
+
 	public function set_name(value:String):String {
 		return name = value + ' ($ID)';
 	}

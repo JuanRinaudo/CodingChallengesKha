@@ -93,25 +93,24 @@ class SimpleLighting extends AppState {
 		projectionViewMatrix = projectionMatrix.multmat(viewMatrix);
 		mvpMatrix = projectionViewMatrix.multmat(modelMatrix);
 
-		cubeOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		cubeSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		cubeOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, Color.White);
+		cubeSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, pipeline.vertexStructure, Color.White);
 
-		sphereOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.sphere_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		sphereSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.sphere_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		sphereOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.sphere_obj, pipeline.vertexStructure, Color.White);
+		sphereSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.sphere_stl, pipeline.vertexStructure, Color.White);
 
-		torusOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.torus_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		torusSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.torus_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		torusOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.torus_obj, pipeline.vertexStructure, Color.White);
+		torusSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.torus_stl, pipeline.vertexStructure, Color.White);
 
-		suzanneOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.suzanne_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		suzanneSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.suzanne_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		suzanneOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.suzanne_obj, pipeline.vertexStructure, Color.White);
+		suzanneSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.suzanne_stl, pipeline.vertexStructure, Color.White);
 		
-		carFormulaOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.carFormula_obj, pipeline.vertexStructure, 0, 3, 6, 8, Color.White);
-		carFormulaSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.carFormula_stl, pipeline.vertexStructure, 0, 3, 8, Color.White);
+		carFormulaOBJMesh = BasicMesh.getOBJMesh(Assets.blobs.carFormula_obj, pipeline.vertexStructure, Color.White);
+		carFormulaSTLMesh = BasicMesh.getSTLMesh(Assets.blobs.carFormula_stl, pipeline.vertexStructure, Color.White);
 	}
 
 	override public function render(backbuffer:Image) {
 		renderMesh(backbuffer);
-		renderUI(backbuffer);
 	}
 
 	private inline function renderMesh(backbuffer:Image) {
@@ -171,7 +170,7 @@ class SimpleLighting extends AppState {
 		backbuffer.g4.drawIndexedVertices();
 	}
 
-	private inline function renderUI(backbuffer:Image) {
+	override public function renderUI(backbuffer:Image) {
 		ui.begin(backbuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
