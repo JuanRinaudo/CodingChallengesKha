@@ -45,7 +45,12 @@ class GamepadInput extends Basic
 		var axisListener:GamepadListenerType = axisChangeListener.bind(index, _, _);
 		var buttonListener:GamepadListenerType = buttonChangeListener.bind(index, _, _);
 		gamepadListeners[index] = {axis: axisListener, button: buttonListener};
-		Gamepad.get(index).notify(axisListener, buttonListener);
+		var gamepad = Gamepad.get(index);
+		if(gamepad != null) {
+			gamepad.notify(axisListener, buttonListener);
+		} else {
+			trace('No gamepad with index: $index was found');
+		}
 		gamepadsSetted++;
 	}
 	

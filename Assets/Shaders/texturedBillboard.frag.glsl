@@ -11,5 +11,7 @@ void main() {
 	if(texcolor.a < 1) {
 		discard;
 	}
-	fragColor = texcolor * fragmentColor;
+	vec4 color = texcolor * fragmentColor;
+	color.rgb *= color.a;
+	fragColor = color;
 }

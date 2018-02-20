@@ -83,8 +83,8 @@ class TextureCutoffMeshShader extends AppState {
 	}
 
 	override public function update(delta:Float) {
-		mesh.setRotation(meshRotation.x, meshRotation.y, meshRotation.z);
-		mesh.setSize(meshScale.x, meshScale.y, meshScale.z);
+		mesh.setRotation(meshRotation);
+		mesh.setSize(meshScale);
 
 		if(timeAnimation) {
 			cuttoffValue = Math.abs(Math.sin(Application.time * timeMultiplier));
@@ -102,7 +102,7 @@ class TextureCutoffMeshShader extends AppState {
 		backbuffer.g4.setMatrix(pipeline.locationMVPMatrix, pipeline.getMVPMatrix(mesh.modelMatrix));
 		backbuffer.g4.setMatrix3(pipeline.locationNormalMatrix, pipeline.getNormalMatrix(mesh.modelMatrix));
 		backbuffer.g4.setFloat(locationCutoffValue, cuttoffValue);
-		backbuffer.g4.setVector4(locationLightDirection, pipeline.viewMatrix.multvec(lightDirection));
+		backbuffer.g4.setVector4(locationLightDirection, pipeline.camera.viewMatrix.multvec(lightDirection));
 		backbuffer.g4.setVector4(locationLightColor, lightColor);
 		backbuffer.g4.setVector4(locationAmbientColor, ambientColor);
 

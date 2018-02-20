@@ -155,15 +155,14 @@ class SimpleLighting extends AppState {
 			.multmat(FastMatrix4.rotation(deltaAngle.x * Application.time, deltaAngle.y * Application.time, deltaAngle.z * Application.time));
 		mvpMatrix = projectionViewMatrix.multmat(modelMatrix);
 		
-		var modelViewMatrix = viewMatrix.multmat(modelMatrix);
-		normalMatrix = new FastMatrix3(modelViewMatrix._00, modelViewMatrix._10, modelViewMatrix._20,
-			modelViewMatrix._01, modelViewMatrix._11, modelViewMatrix._21,
-			modelViewMatrix._02, modelViewMatrix._12, modelViewMatrix._22).inverse().transpose();
+		normalMatrix = new FastMatrix3(modelMatrix._00, modelMatrix._10, modelMatrix._20,
+			modelMatrix._01, modelMatrix._11, modelMatrix._21,
+			modelMatrix._02, modelMatrix._12, modelMatrix._22).inverse().transpose();
 
 		backbuffer.g4.setMatrix(pipeline.locationMVPMatrix, mvpMatrix);
 		backbuffer.g4.setMatrix(pipeline.locationViewMatrix, viewMatrix);
 		backbuffer.g4.setMatrix3(pipeline.locationNormalMatrix, normalMatrix);
-		backbuffer.g4.setVector4(locationDirectionalLight, viewMatrix.multvec(directionalLight));
+		backbuffer.g4.setVector4(locationDirectionalLight, directionalLight);
 		backbuffer.g4.setVector4(locationAmbientLight, new FastVector4(ambientLight.R, ambientLight.G, ambientLight.B, ambientLight.A));
 		backbuffer.g4.setVector4(locationDirectionalColor, new FastVector4(directionalColor.R, directionalColor.G, directionalColor.B, directionalColor.A));
 

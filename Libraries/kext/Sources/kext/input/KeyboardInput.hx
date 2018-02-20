@@ -31,7 +31,12 @@ class KeyboardInput extends Basic
 		
 		name = "Keyboard Input";
 		
-		Keyboard.get().notify(keyDownListener, keyUpListener);
+		var keyboard = Keyboard.get(0);
+		if(keyboard != null) {
+			keyboard.notify(keyDownListener, keyUpListener);
+		} else {
+			trace("No keyboard of inde 0 found");
+		}
 	}
 	
 	private function keyDownListener(key:KeyCode) {		

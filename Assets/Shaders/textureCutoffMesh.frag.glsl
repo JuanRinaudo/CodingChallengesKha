@@ -18,5 +18,7 @@ void main() {
 		discard;
 	}
 	vec3 lightDirection = normalize(LIGHT_DIRECTION).xyz;
-	fragColor = max(fragmentColor * LIGHT_COLOR * dot(fragmentNormal, lightDirection), AMBIENT_COLOR);
+	vec4 color = max(fragmentColor * LIGHT_COLOR * dot(fragmentNormal, lightDirection), AMBIENT_COLOR);
+	color.rgb *= color.a;
+	fragColor = color;
 }

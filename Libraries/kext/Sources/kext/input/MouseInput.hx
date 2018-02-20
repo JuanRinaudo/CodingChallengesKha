@@ -57,7 +57,12 @@ class MouseInput extends Basic
 		
 		name = "Mouse Input";
 		
-		Mouse.get().notify(mouseDownListener, mouseUpListener, mouseMoveListener, mouseWheelListener);
+		var mouse = Mouse.get(0);
+		if(mouse != null) {
+			mouse.notify(mouseDownListener, mouseUpListener, mouseMoveListener, mouseWheelListener);
+		} else {
+			trace("No mouse of index 0 found");
+		}
 	}
 	
 	private function mouseDownListener(index:Int, x:Int, y:Int) {

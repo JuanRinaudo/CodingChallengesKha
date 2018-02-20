@@ -33,7 +33,7 @@ class ZUIUtils {
 
 			var color:Color;
 			ui.text("Light Color");
-			color = Color.fromValue(Ext.colorPicker(ui, handle.nest(1, {color: Color.fromFloats(lightColor.x, lightColor.y, lightColor.z, lightColor.w)})));
+			color = Color.fromValue(Ext.colorPicker(ui, handle.nest(1, {color: Color.fromFloats(lightColor.x, lightColor.y, lightColor.z, lightColor.w)}), true));
 			lightColor.x = color.R;
 			lightColor.y = color.G;
 			lightColor.z = color.B;

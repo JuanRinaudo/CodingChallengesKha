@@ -38,7 +38,12 @@ class TouchInput extends Basic
 		pressedQueue = [];
 		releasedQueue = [];
 		
-		Surface.get(0).notify(touchStartListener, touchEndListener, touchMoveListener);
+		var surface = Surface.get(0);
+		if(surface != null) {
+			surface.notify(touchStartListener, touchEndListener, touchMoveListener);
+		} else {
+			trace("No surface of index 0 found");
+		}
 	}
 	
 	private function touchStartListener(index:Int, x:Int, y:Int) {

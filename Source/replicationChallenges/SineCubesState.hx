@@ -14,9 +14,7 @@ import kext.Application;
 import kext.AppState;
 import kext.g4basics.BasicMesh;
 import kext.g4basics.BasicPipeline;
-import kext.loaders.STLMeshLoader;
 
-import zui.Zui;
 import zui.Ext;
 import zui.Id;
 

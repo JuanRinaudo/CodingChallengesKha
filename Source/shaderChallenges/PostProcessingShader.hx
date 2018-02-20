@@ -6,6 +6,7 @@ import kha.Image;
 import kha.Shaders;
 
 import kha.math.Vector2;
+import kha.math.Vector3;
 import kha.math.FastVector3;
 
 import kha.graphics4.FragmentShader;
@@ -92,15 +93,15 @@ class PostProcessingShader extends AppState {
 		pipelineLenna.compile();
 
 		DemoMeshes.init(pipelineCube.vertexStructure, Color.White);
-		DemoMeshes.CUBE_OBJ.scale(3, 3, 3);
-		DemoMeshes.QUAD_OBJ.scale(4, 4, 4);
+		DemoMeshes.CUBE_OBJ.scale(new Vector3(3, 3, 3));
+		DemoMeshes.QUAD_OBJ.scale(new Vector3(4, 4, 4));
 
 		mesh = DemoMeshes.CUBE_OBJ;
 		texture = Assets.images.Lenna;
 	}
 
 	override public function render(backbuffer:Image) {
-		DemoMeshes.CUBE_OBJ.rotate(Application.deltaTime, 0, 0);
+		DemoMeshes.CUBE_OBJ.rotate(new Vector3(Application.deltaTime, 0, 0));
 
 		beginAndClear(backbuffer);
 		mesh.setBufferMesh(backbuffer);

@@ -83,7 +83,7 @@ class Application {
 		
 		deltaTime = options.updatePeriod;
 
-		#if js
+		#if (js && !kha_krom) 
 		var game = js.Browser.document.getElementById("game");
 		game.style.width = systemOptions.width + "px";
 		game.style.height = systemOptions.height + "px";
@@ -147,9 +147,11 @@ class Application {
 			else { buffer1 = backbuffer; buffer2 = postbackbuffer; }
 		}
 		backbuffer.g2.pipeline = null;
-		backbuffer.g2.begin(false);
-		Scaler.scale(buffer2, backbuffer, System.screenRotation);
-		backbuffer.g2.end();
+		if(buffer2 == postbackbuffer) { //If last buffer used is post back buffer draw to normal buffer
+			backbuffer.g2.begin(false);
+			Scaler.scale(postbackbuffer, backbuffer, System.screenRotation);
+			backbuffer.g2.end();
+		}
 
 		if(currentState != null) {
 			currentState.renderUI(backbuffer);
@@ -205,6 +207,11 @@ class Application {
 			time += options.updatePeriod;
 			currentState.update(options.updatePeriod);
 		}
+
+		gamepad.update(options.updatePeriod);
+		keyboard.update(options.updatePeriod);
+		mouse.update(options.updatePeriod);
+		touch.update(options.updatePeriod);
 
 		debug.update(options.updatePeriod);
 	}

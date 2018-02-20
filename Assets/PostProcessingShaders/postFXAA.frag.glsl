@@ -4,9 +4,9 @@ in vec2 texCoord;
 out vec4 FragColor;
 
 uniform sampler2D tex;
-uniform float FXAA_SPAN_MAX;
-uniform float FXAA_REDUCE_MIN;
-uniform float FXAA_REDUCE_MUL;
+uniform float FXAA_SPAN_MAX = 10;
+uniform float FXAA_REDUCE_MIN = 0.03;
+uniform float FXAA_REDUCE_MUL = 0.1;
 uniform vec2 RENDER_SIZE;
 
 vec4 FXAA() {

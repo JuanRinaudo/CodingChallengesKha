@@ -11,5 +11,7 @@ uniform int TILES_Y;
 
 void main() {
 	vec4 texColor = texture(TEXTURE, vec2(texCoord.x * TILES_X, texCoord.y * TILES_Y));
-	fragColor = vec4(fragmentColor.xyz, ceil(texColor.w - TRANSITION));
+	vec4 color = vec4(fragmentColor.xyz, ceil(texColor.w - TRANSITION));
+	color.rgb *= color.a;
+	fragColor = color;
 }

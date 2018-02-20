@@ -11,7 +11,9 @@ project.addAssets('Assets/Images/**');
 project.addAssets('Assets/Common/**');
 project.addAssets('Assets/BasicGeometry/**');
 project.addAssets('Assets/Models/**');
+
 // project.addAssets('Assets/Transitions/**');
+project.addAssets('Assets/GameAssets/SimpleCarGame');
 
 project.addSources('Source');
 

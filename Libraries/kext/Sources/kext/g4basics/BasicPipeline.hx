@@ -19,22 +19,18 @@ import kha.graphics4.TextureAddressing;
 import kha.graphics4.TextureFilter;
 import kha.graphics4.MipMapFilter;
 
-typedef OrthogonalCameraData = {
+typedef CameraParameters = {
+	orthogonalPerspective:Bool,
 	size:Float,
-	aspectRatio:Float
-}
-
-typedef PerspectiveCameraData = {
 	fovY:Float,
-	aspectRatio:Float
+	aspectRatio:Float,
+	projectionMatrix:FastMatrix4,
+	viewMatrix:FastMatrix4
 }
 
 class BasicPipeline extends PipelineState {
 
 	public var vertexStructure:VertexStructure;
-
-	public var projectionMatrix:FastMatrix4;
-	public var viewMatrix:FastMatrix4;
 
 	public var locationMVPMatrix:ConstantLocation;
 	public var locationModelMatrix:ConstantLocation;
@@ -45,12 +41,11 @@ class BasicPipeline extends PipelineState {
 
 	public var textureUnit:TextureUnit;
 
-	public var orthogonalCamera(default, null):OrthogonalCameraData;
-	public var perspectiveCamera(default, null):PerspectiveCameraData;
+	public var camera(default, set):CameraParameters;
 	public var nearPlane(default, set):Float;
 	public var farPlane(default, set):Float;
 
-	public var upVector:FastVector3 = new FastVector3(0, 1, 0);
+	public var upVector:FastVector3 = new FastVector3(0, -1, 0);
 
 	public function new(vertexShader:VertexShader, fragmentShader:FragmentShader) {
 		super();
@@ -72,6 +67,15 @@ class BasicPipeline extends PipelineState {
 		depthWrite = true;
 		depthMode = CompareMode.LessEqual;
 
+		camera = {
+			orthogonalPerspective: false,
+			size: 0,
+			fovY: 0,
+			aspectRatio: 0,
+			viewMatrix: null,
+			projectionMatrix: null
+		}
+
 		nearPlane = 0.1;
 		farPlane = 100;
 		orthogonal(5, 1);
@@ -79,34 +83,36 @@ class BasicPipeline extends PipelineState {
 	}
 
 	public function cameraLookAt(from:FastVector3, to:FastVector3) {
-		viewMatrix = FastMatrix4.lookAt(from, to, upVector);
+		camera.viewMatrix = FastMatrix4.lookAt(from, to, upVector);
 	}
 
 	public function cameraLookAtXYZ(fromX:Float, fromY:Float, fromZ:Float, toX:Float, toY:Float, toZ:Float) {
-		viewMatrix = FastMatrix4.lookAt(new FastVector3(fromX, fromY, fromZ), new FastVector3(toX, toY, toZ), upVector);
+		camera.viewMatrix = FastMatrix4.lookAt(new FastVector3(fromX, fromY, fromZ), new FastVector3(toX, toY, toZ), upVector);
 	}
 
 	public function orthogonal(size:Float, aspectRatio:Float) {
-		perspectiveCamera = null;
-		orthogonalCamera = {size: size, aspectRatio: aspectRatio};
-		projectionMatrix = FastMatrix4.orthogonalProjection(-size * aspectRatio, size * aspectRatio, size, -size, farPlane, nearPlane);
+		camera.orthogonalPerspective = true;
+		camera.size = size;
+		camera.aspectRatio = aspectRatio;
+		camera.projectionMatrix = FastMatrix4.orthogonalProjection(-size * aspectRatio, size * aspectRatio, -size, size, farPlane, nearPlane);
 	}
 
 	public function perspective(fovY:Float, aspectRatio:Float) {
-		orthogonalCamera = null;
-		perspectiveCamera = {fovY: fovY, aspectRatio: aspectRatio};
-		projectionMatrix = FastMatrix4.perspectiveProjection(fovY, aspectRatio, farPlane, nearPlane);
+		camera.orthogonalPerspective = false;
+		camera.fovY = fovY;
+		camera.aspectRatio = aspectRatio;
+		camera.projectionMatrix = FastMatrix4.perspectiveProjection(fovY, aspectRatio, farPlane, nearPlane);
 	}
 
 	public inline function getMVPMatrix(modelMatrix:FastMatrix4):FastMatrix4 {
-		return projectionMatrix.multmat(viewMatrix).multmat(modelMatrix);
+		var projectionViewMatrix:FastMatrix4 = camera.projectionMatrix.multmat(camera.viewMatrix);
+		return projectionViewMatrix.multmat(modelMatrix);
 	}
 
 	public inline function getNormalMatrix(modelMatrix:FastMatrix4):FastMatrix3 {
-		var modelViewMatrix:FastMatrix4 = viewMatrix.multmat(modelMatrix);
-		return new FastMatrix3(modelViewMatrix._00, modelViewMatrix._10, modelViewMatrix._20,
-			modelViewMatrix._01, modelViewMatrix._11, modelViewMatrix._21,
-			modelViewMatrix._02, modelViewMatrix._12, modelViewMatrix._22).inverse().transpose();
+		return new FastMatrix3(modelMatrix._00, modelMatrix._10, modelMatrix._20,
+			modelMatrix._01, modelMatrix._11, modelMatrix._21,
+			modelMatrix._02, modelMatrix._12, modelMatrix._22).inverse().transpose();
 	}
 
 	public function addVertexData(name:String, dataType:VertexData) {
@@ -133,10 +139,10 @@ class BasicPipeline extends PipelineState {
 	}
 
 	private inline function refreshCamera() {
-		if(orthogonalCamera != null) {
-			orthogonal(orthogonalCamera.size, orthogonalCamera.aspectRatio);
-		} else if(perspectiveCamera != null) {
-			perspective(perspectiveCamera.fovY, perspectiveCamera.aspectRatio);
+		if(camera.orthogonalPerspective) {
+			orthogonal(camera.size, camera.aspectRatio);
+		} else {
+			perspective(camera.fovY, camera.aspectRatio);
 		}
 	}
 
@@ -150,6 +156,12 @@ class BasicPipeline extends PipelineState {
 		farPlane = value;
 		refreshCamera();
 		return farPlane;
+	}
+
+	public function set_camera(value:CameraParameters):CameraParameters {
+		camera = value;
+		refreshCamera();
+		return value;
 	}
 
 }

@@ -3,6 +3,7 @@ package kext.debug;
 import kext.g4basics.BasicMesh;
 import kext.g4basics.BasicPipeline;
 import kext.loaders.OBJMeshLoader;
+import kext.math.BoundingCube;
 
 import kha.Assets;
 import kha.Color;
@@ -18,12 +19,14 @@ class Debug extends Basic {
 	
 	private static var pipeline:BasicPipeline;
 	private static var cube:BasicMesh;
+	private static var cubeBound:BasicMesh;
 
 	public function new() {
 		super();
 
 		pipeline = new BasicPipeline(Shaders.colored_vert, Shaders.colored_frag);
 		pipeline.compile();
+
 		Application.onLoadComplete.add(loadCompleteHandler);
 	}
 
@@ -39,10 +42,33 @@ class Debug extends Basic {
 	}
 
 	private function loadCompleteHandler() {
-		cube = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, Color.White);
+		cube = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, Color.fromFloats(1, 1, 1, 1));
+		cubeBound = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline.vertexStructure, Color.fromFloats(0, 0.7, 0, 0.25));
 	}
 
-	public static function drawDebugCube(backbuffer:Image, projectionViewMatrix:FastMatrix4, position:Vector3, size:Float) {
+	public static function drawDebugBoundingCube(backbuffer:Image, fromPipeline:BasicPipeline, boundingCube:BoundingCube) {
+		var size:Vector3 = boundingCube.getCubeSize().mult(0.5);
+		pipeline.camera = fromPipeline.camera;
+
+		cube.setPosition(boundingCube.position.add(boundingCube.v1));
+		cube.setSize(size.mult(0.1));
+		cube.drawMesh(backbuffer, pipeline);
+		cube.setPosition(boundingCube.position.add(boundingCube.v2));
+		cube.setSize(size.mult(0.1));
+		cube.drawMesh(backbuffer, pipeline);
+
+		cube.setPosition(boundingCube.position);
+		cube.setSize(size.mult(0.1));
+		cube.drawMesh(backbuffer, pipeline);
+		
+		cubeBound.setPosition(boundingCube.getCubeCenter());
+		cubeBound.setSize(size);
+		cubeBound.drawMesh(backbuffer, pipeline);
+
+		backbuffer.g4.setPipeline(fromPipeline);
+	}
+
+	public static function drawDebugCube(backbuffer:Image, projectionViewMatrix:FastMatrix4, position:Vector3, size:Float) { //TODO Refactor this and SimpleLighting.hx to use new function 
 		backbuffer.g4.setPipeline(pipeline);
 
 		backbuffer.g4.setVertexBuffer(cube.vertexBuffer);

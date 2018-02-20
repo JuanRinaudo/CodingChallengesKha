@@ -26,6 +26,7 @@ class BasicMesh {
 	public var indexBuffer:IndexBuffer;
 
 	public var triangleCount:UInt = 0;
+	public var indexCount:UInt = 0;
 	public var vertexCount:UInt = 0;
 	public var vertexStructure:VertexStructure;
 
@@ -58,41 +59,53 @@ class BasicMesh {
 		backbuffer.g4.setVertexBuffer(vertexBuffer);
 		backbuffer.g4.setIndexBuffer(indexBuffer);
 	}
-
-	public inline function translate(x:Float, y:Float, z:Float) {
-		position.add(new Vector3(x, y, z));
-		modelMatrix = modelMatrix.multmat(FastMatrix4.translation(x, y, z));
+	
+	public inline function drawMesh(backbuffer:Image, pipeline:BasicPipeline, setPipeline:Bool = true) {
+		if(setPipeline) { backbuffer.g4.setPipeline(pipeline); }
+		backbuffer.g4.setVertexBuffer(vertexBuffer);
+		backbuffer.g4.setIndexBuffer(indexBuffer);
+		backbuffer.g4.setMatrix(pipeline.locationMVPMatrix, pipeline.getMVPMatrix(modelMatrix));
+		backbuffer.g4.setMatrix(pipeline.locationModelMatrix, modelMatrix);
+		backbuffer.g4.setMatrix3(pipeline.locationNormalMatrix, pipeline.getNormalMatrix(modelMatrix));
+		backbuffer.g4.drawIndexedVertices();
 	}
 
-	public inline function rotate(yaw:Float, pitch:Float, roll:Float) {
-		rotation.add(new Vector3(yaw, pitch, roll));
-		modelMatrix = modelMatrix.multmat(FastMatrix4.rotation(yaw, pitch, roll));
+	public inline function translate(deltaPosition:Vector3) {
+		position = position.add(deltaPosition);
+		modelMatrix = modelMatrix.multmat(FastMatrix4.translation(deltaPosition.x, deltaPosition.y, deltaPosition.z));
 	}
 
-	public inline function scale(x:Float, y:Float, z:Float) {
-		size.add(new Vector3(x, y, z));
-		modelMatrix = modelMatrix.multmat(FastMatrix4.scale(x, y, z));
+	public inline function rotate(deltaRotation:Vector3) {
+		rotation = rotation.add(deltaRotation);
+		modelMatrix = modelMatrix.multmat(FastMatrix4.rotation(deltaRotation.x, deltaRotation.y, deltaRotation.z));
+	}
+
+	public inline function scale(deltaScale:Vector3) {
+		size.x *= deltaScale.x;
+		size.y *= deltaScale.y;
+		size.z *= deltaScale.z;
+		modelMatrix = modelMatrix.multmat(FastMatrix4.scale(deltaScale.x, deltaScale.y, deltaScale.z));
 	}
 
 	public inline function recalculateModelMatrix() {
 		modelMatrix = FastMatrix4.identity()
-			.multmat(FastMatrix4.rotation(rotation.x, rotation.y, rotation.z))
 			.multmat(FastMatrix4.translation(position.x, position.y, position.z))
-			.multmat(FastMatrix4.scale(size.x, size.y, size.z));
+			.multmat(FastMatrix4.scale(size.x, size.y, size.z))
+			.multmat(FastMatrix4.rotation(rotation.x, rotation.y, rotation.z));
 	}
 
-	public function setPosition(x:Float, y:Float, z:Float) {
-		position.setFrom(new Vector3(x, y, z));
+	public function setPosition(newPosition:Vector3) {
+		position.setFrom(newPosition);
 		recalculateModelMatrix();
 	}
 
-	public function setRotation(yaw:Float, pitch:Float, roll:Float) {
-		rotation.setFrom(new Vector3(yaw, pitch, roll));
+	public function setRotation(newRotation:Vector3) {
+		rotation.setFrom(newRotation);
 		recalculateModelMatrix();
 	}
 
-	public function setSize(x:Float, y:Float, z:Float) {
-		size.setFrom(new Vector3(x, y, z));
+	public function setSize(newSize:Vector3) {
+		size.setFrom(newSize);
 		recalculateModelMatrix();
 	}
 
@@ -109,6 +122,7 @@ class BasicMesh {
 		setVertex(vertexes, baseIndex + structSize * 2, v3, n3, uv3, color3);
 		vertexBuffer.unlock();
 
+		var baseIndex:Int = indexCount;
 		var indexes = indexBuffer.lock();
 		indexes.set(baseIndex + 0, baseIndex + 0);
 		indexes.set(baseIndex + 1, baseIndex + 1);
@@ -116,6 +130,7 @@ class BasicMesh {
 		indexBuffer.unlock();
 
 		triangleCount += 1;
+		indexCount += 3;
 		vertexCount += 3;
 	}
 
@@ -132,8 +147,19 @@ class BasicMesh {
 			baseIndex += structSize;
 		}
 		vertexBuffer.unlock();
-		triangleCount += Math.floor(vectors.length / 3);
 		vertexCount += vectors.length;
+	}
+
+	public inline function addIndexes(indexes:Array<Int>) {
+		var baseIndex = indexCount;
+		var indexes = indexBuffer.lock();
+		for(index in indexes) {
+			indexes.set(baseIndex, index);
+			baseIndex++;
+		}
+		indexBuffer.unlock();
+		indexCount += indexes.length;
+		triangleCount = Math.floor(indexCount / 3);
 	}
 
 	private inline function setVertex(vertexes:Float32Array, baseIndex:Int, vector:Vector3, normal:Vector3, uv:Vector2, color:Color) {
@@ -189,8 +215,9 @@ class BasicMesh {
 		}
 		mesh.indexBuffer.unlock();
 		
-		mesh.triangleCount = data.triangleCount;
 		mesh.vertexCount = data.vertexCount;
+		mesh.indexCount = data.triangleCount * 3;
+		mesh.triangleCount = data.triangleCount;
 
 		return mesh;
 	}
@@ -235,8 +262,9 @@ class BasicMesh {
 		}
 		mesh.indexBuffer.unlock();
 
-		mesh.triangleCount = data.triangleCount;
 		mesh.vertexCount = data.vertexCount;
+		mesh.indexCount = data.triangleCount * 3;
+		mesh.triangleCount = data.triangleCount;
 
 		return mesh;
 	}
