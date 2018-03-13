@@ -3,6 +3,7 @@ package gameChallenges;
 import kha.Assets;
 import kha.Color;
 import kha.Image;
+import kha.Framebuffer;
 import kha.Shaders;
 
 import kha.math.Vector2;
@@ -24,10 +25,8 @@ import kext.math.BoundingCube;
 
 import kext.debug.Debug;
 
-#if debug
 import zui.Id;
 import utils.ZUIUtils;
-#end
 
 typedef AICar = {
 	alive:Bool,
@@ -84,6 +83,8 @@ class SimpleCarGame extends AppState {
 	private var lightColor:FastVector4 = new FastVector4(1, 1, 1, 1);
 	private var ambientColor:FastVector4 = new FastVector4(0.05, 0.05, 0.05, 1);
 
+	private var fxaaOn:Bool = true;
+
 	public static function initApplication() {
 		return new Application(
 			{title: SimpleCarGame.NAME, width: SimpleCarGame.CANVAS_WIDTH, height: SimpleCarGame.CANVAS_HEIGHT},
@@ -106,12 +107,12 @@ class SimpleCarGame extends AppState {
 		meshRacingCar = BasicMesh.getOBJMesh(Assets.blobs.carFormula_obj, pipeline.vertexStructure, Color.fromFloats(0, 0, 0.8, 1));
 		boundsRacingCar = BoundingCube.fromBasicMesh(meshRacingCar);
 
-		grassMesh = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.fromFloats(0, 0.7, 0, 1));
+		grassMesh = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.fromFloats(0, 0.6, 0, 1));
 		grassMesh.scale(new Vector3(15, 1, worldSizeY));
 		roadMesh = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.fromFloats(0.4, 0.4, 0.4, 1));
 		roadMesh.translate(new Vector3(0, 0.01, 0));
 
-		meshSedanCar = BasicMesh.getOBJMesh(Assets.blobs.carSedan_obj, pipeline.vertexStructure, Color.fromFloats(0.8, 0, 0, 2));
+		meshSedanCar = BasicMesh.getOBJMesh(Assets.blobs.carSedan_obj, pipeline.vertexStructure, Color.fromFloats(0.6, 0, 0, 2));
 		meshSedanCar.rotate(new Vector3(Math.PI, 0, 0));
 		boundsSedanCar = BoundingCube.fromBasicMesh(meshSedanCar);
 
@@ -186,14 +187,10 @@ class SimpleCarGame extends AppState {
 	}
 
 	private inline function restart() {
-		for(car in aiCars) {
-			gameScore = 0;
-			gameTime = 0;
-			car.alive = false;
-		}
+		Application.reset();
 	}
 
-	private inline function getPlayerInput(delta:Float) {
+	private function getPlayerInput(delta:Float) {
 		if(Application.keyboard.keyPressed(KeyCode.D) && carTargetLane < Math.floor(laneCount * .5)) {
 			carTargetLane++;
 		} else if(Application.keyboard.keyPressed(KeyCode.A) && carTargetLane > -Math.floor(laneCount * .5)) {
@@ -216,7 +213,7 @@ class SimpleCarGame extends AppState {
 			translation.x = delta * carSpeed.x * MathExt.clamp(carDeltaX, -1, 1);
 		}
 		
-		if(carTargetZ != 0) {
+		if(carTargetZ != 1) {
 			var carDeltaZ = carTargetZ - meshRacingCar.position.z;
 			translation.z = delta * carSpeed.y * MathExt.clamp(carDeltaZ, -1, 1);
 		}
@@ -270,8 +267,10 @@ class SimpleCarGame extends AppState {
 		}
 	}
 
-	override public function renderUI(backbuffer:Image) {
-		ui.begin(backbuffer.g2);
+	override public function renderFramebuffer(framebuffer:Framebuffer) {
+		var fxaaStatus:Bool = fxaaOn;
+
+		ui.begin(framebuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: false}), "UI On/Off");
 			if(uiToggle) {
@@ -303,9 +302,20 @@ class SimpleCarGame extends AppState {
 				if(ui.panel(Id.handle({selected: false}), "AI Cars")) {
 					aiCreationTime = ui.slider(Id.handle({value: aiCreationTime}), "AI Creation Time", 0, 10, true, 10);
 				}
+				if(ui.panel(Id.handle({selected: false}), "Post Processing")) {
+					fxaaOn = ui.check(Id.handle({selected: fxaaOn}), "FXAA");
+				}
 			}
 		}
 		ui.end();
+
+		if(fxaaStatus != fxaaOn) {
+			if(fxaaOn) {
+				Application.setPostProcessingShader(Shaders.postFXAA_frag);
+			} else {
+				Application.removePostProcessingShader(Shaders.postFXAA_frag);
+			}
+		}
 	}
 
 }

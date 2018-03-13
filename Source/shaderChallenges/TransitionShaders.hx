@@ -3,6 +3,7 @@ package shaderChallenges;
 import kha.Assets;
 import kha.Shaders;
 import kha.Image;
+import kha.Framebuffer;
 import kha.Color;
 
 import kha.graphics4.ConstantLocation;
@@ -97,8 +98,8 @@ class TransitionShaders extends AppState {
 		transition = Math.abs(time % 2 - 1);
 	}
 
-	override public function renderUI(backbuffer:Image) {
-		ui.begin(backbuffer.g2);
+	override public function renderFramebuffer(framebuffer:Framebuffer) {
+		ui.begin(framebuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {

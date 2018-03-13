@@ -1,6 +1,7 @@
 package shaderChallenges;
 
 import kha.Image;
+import kha.Framebuffer;
 import kha.Color;
 import kha.Shaders;
 
@@ -140,9 +141,9 @@ class TextureCutoffMeshShader extends AppState {
 		fadeTexture.g2.end();
 	}
 
-	override public function renderUI(backbuffer:Image) {
+	override public function renderFramebuffer(framebuffer:Framebuffer) {
 		var createTextureClicked:Bool = false;
-		ui.begin(backbuffer.g2);
+		ui.begin(framebuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {

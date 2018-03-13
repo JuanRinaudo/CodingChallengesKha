@@ -3,6 +3,7 @@ package shaderChallenges;
 import kha.Assets;
 import kha.Color;
 import kha.Image;
+import kha.Framebuffer;
 import kha.Shaders;
 
 import kha.math.Vector2;
@@ -118,8 +119,8 @@ class PostProcessingShader extends AppState {
 		backbuffer.g4.end();
 	}
 
-	override public function renderUI(backbuffer:Image) {
-		ui.begin(backbuffer.g2);
+	override public function renderFramebuffer(framebuffer:Framebuffer) {
+		ui.begin(framebuffer.g2);
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {
