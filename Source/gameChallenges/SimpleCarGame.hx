@@ -23,6 +23,8 @@ import kha.graphics4.ConstantLocation;
 import kext.math.MathExt;
 import kext.math.BoundingCube;
 
+import kext.utils.Counter;
+
 import kext.debug.Debug;
 
 import zui.Id;
@@ -31,9 +33,17 @@ import utils.ZUIUtils;
 typedef AICar = {
 	alive:Bool,
 	lane:Int,
-	carSpeed:Vector2,
-	carModel:Int,
+	moveSpeed:Vector2,
+	model:Int,
 	position:Vector3
+}
+
+typedef SideDecoration = {
+	alive:Bool,
+	model:Int,
+	position:Vector3,
+	rotation:Vector3,
+	scale:Vector3,
 }
 
 class SimpleCarGame extends AppState {
@@ -43,20 +53,20 @@ class SimpleCarGame extends AppState {
 
 	private var pipeline:BasicPipeline;
 	private var meshRacingCar:BasicMesh;
-	private var grassMesh:BasicMesh;
-	private var roadMesh:BasicMesh;
+	private var meshGrass:BasicMesh;
+	private var meshRoad:BasicMesh;
 	private var meshSedanCar:BasicMesh;
-
-	private var gameScore:Int = 0;
-	private var gameTime:Float = 0;
+	private var meshTree:BasicMesh;
 
 	private var drawBounds:Bool;
 	private var boundsRacingCar:BoundingCube;
 	private var boundsSedanCar:BoundingCube;
 
 	private var aiCars:Array<AICar>;
-	private var creationCounter:Float = 0;
-	private var aiCreationTime:Float = 2;
+	private var aiCreationCounter:Counter;
+	private var decorationCreationCounter:Counter;
+
+	private var sideDecorations:Array<SideDecoration>;
 
 	private var locationDirectionalLight:ConstantLocation;
 	private var locationDirectionalColor:ConstantLocation;
@@ -66,12 +76,13 @@ class SimpleCarGame extends AppState {
 	private var laneCount:Int = 3;
 	private var laneWidth:Float = 1.6;
 
-	private var carSpeed:Vector2 = new Vector2(5, 5);
-	private var carWidth:Float = 0.7;
-	private var carTargetZ:Float = 0;
-	private var carMaxZ:Float = 10;
-	private var carTargetLane:Int = 0;
-	private var carBoundScale:Vector3 = new Vector3(0.9, 1, 0.9);
+	private var playerSpeed:Vector2 = new Vector2(5, 5);
+	private var playerWidth:Float = 0.7;
+	private var playerTargetZ:Float = 0;
+	private var playerMaxZ:Float = 10;
+	private var playerTargetLane:Int = 0;
+
+	private var boundsScale:Vector3 = new Vector3(0.9, 1, 0.9);
 
 	private var cameraFrom:Vector3 = new Vector3(-9, -13, -15);
 	private var cameraTo:Vector3 = new Vector3(0, 0, -6);
@@ -107,19 +118,28 @@ class SimpleCarGame extends AppState {
 		meshRacingCar = BasicMesh.getOBJMesh(Assets.blobs.carFormula_obj, pipeline.vertexStructure, Color.fromFloats(0, 0, 0.8, 1));
 		boundsRacingCar = BoundingCube.fromBasicMesh(meshRacingCar);
 
-		grassMesh = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.fromFloats(0, 0.6, 0, 1));
-		grassMesh.scale(new Vector3(15, 1, worldSizeY));
-		roadMesh = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.fromFloats(0.4, 0.4, 0.4, 1));
-		roadMesh.translate(new Vector3(0, 0.01, 0));
+		meshGrass = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.fromFloats(0, 0.7, 0, 1));
+		meshGrass.scale(new Vector3(15, 1, worldSizeY));
+		meshRoad = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline.vertexStructure, Color.fromFloats(0.4, 0.4, 0.4, 1));
+		meshRoad.translate(new Vector3(0, 0.01, 0));
 
-		meshSedanCar = BasicMesh.getOBJMesh(Assets.blobs.carSedan_obj, pipeline.vertexStructure, Color.fromFloats(0.6, 0, 0, 2));
+		meshSedanCar = BasicMesh.getOBJMesh(Assets.blobs.carSedan_obj, pipeline.vertexStructure, Color.fromFloats(0.8, 0, 0, 1));
 		meshSedanCar.rotate(new Vector3(Math.PI, 0, 0));
 		boundsSedanCar = BoundingCube.fromBasicMesh(meshSedanCar);
 
+		meshTree = BasicMesh.getOBJMesh(Assets.blobs.tree_obj, pipeline.vertexStructure, Color.fromFloats(0.2, 0.6, 0, 1));
+		
 		aiCars = [];
 		for(i in 0...10) {
 			createAICar();
 		}
+		aiCreationCounter = new Counter(2, Application.deltaTime, tryCreateAICar, true);
+
+		sideDecorations = [];
+		for(i in 0...10) {
+			createSideDecoration();
+		}
+		decorationCreationCounter = new Counter(0.1, Application.deltaTime, tryCreateSideDecoration, true);
 
 		Application.setPostProcessingShader(Shaders.postFXAA_frag);
 		Application.setPostProcesingConstantLocation(Shaders.postFXAA_frag, FLOAT, "FXAA_SPAN_MAX", 10);
@@ -140,12 +160,12 @@ class SimpleCarGame extends AppState {
 		backbuffer.g4.setVector4(locationAmbientLight, ambientColor);
 		meshRacingCar.drawMesh(backbuffer, pipeline, false);
 
-		grassMesh.drawMesh(backbuffer, pipeline, false);
-		roadMesh.setSize(new Vector3(laneWidth * Math.floor(laneCount * .5) + carWidth, 1, 20));
-		roadMesh.drawMesh(backbuffer, pipeline, false);
+		meshGrass.drawMesh(backbuffer, pipeline, false);
+		meshRoad.setSize(new Vector3(laneWidth * Math.floor(laneCount * .5) + playerWidth, 1, 20));
+		meshRoad.drawMesh(backbuffer, pipeline, false);
 
-		if(boundsRacingCar.size.x != carBoundScale.x || boundsRacingCar.size.y != carBoundScale.y || boundsRacingCar.size.z != carBoundScale.z)
-			{ boundsRacingCar.setScale(carBoundScale); }
+		if(boundsRacingCar.size.x != boundsScale.x || boundsRacingCar.size.y != boundsScale.y || boundsRacingCar.size.z != boundsScale.z)
+			{ boundsRacingCar.setScale(boundsScale); }
 
 		var collision:AICar = null;
 		for(car in aiCars) {
@@ -155,12 +175,21 @@ class SimpleCarGame extends AppState {
 				meshSedanCar.drawMesh(backbuffer, pipeline, false);
 
 				if(boundsSedanCar.size.x != boundsRacingCar.size.x || boundsSedanCar.size.y != boundsRacingCar.size.y || boundsSedanCar.size.z != boundsRacingCar.size.z)
-					{ boundsSedanCar.setScale(carBoundScale); }
+					{ boundsSedanCar.setScale(boundsScale); }
 
 				if(drawBounds) { Debug.drawDebugBoundingCube(backbuffer, pipeline, boundsSedanCar); }
 				if(boundsRacingCar.checkCubeOverlap(boundsSedanCar)) {
 					collision = car;
 				}
+			}
+		}
+		
+		for(decoration in sideDecorations) {
+			if(decoration.alive) {
+				meshTree.setTransform(new Vector3((laneWidth * laneCount + playerWidth) * decoration.position.x, decoration.position.y, decoration.position.z),
+					decoration.rotation,
+					decoration.scale);
+				meshTree.drawMesh(backbuffer, pipeline, false);
 			}
 		}
 
@@ -180,10 +209,11 @@ class SimpleCarGame extends AppState {
 		getPlayerInput(delta);
 		movePlayerCar(delta);
 
-		tryCreateAICar(delta);
+		aiCreationCounter.tick();
 		moveAICars(delta);
 
-		gameTime += delta;
+		decorationCreationCounter.tick();
+		moveDecorations(delta);
 	}
 
 	private inline function restart() {
@@ -191,78 +221,103 @@ class SimpleCarGame extends AppState {
 	}
 
 	private function getPlayerInput(delta:Float) {
-		if(Application.keyboard.keyPressed(KeyCode.D) && carTargetLane < Math.floor(laneCount * .5)) {
-			carTargetLane++;
-		} else if(Application.keyboard.keyPressed(KeyCode.A) && carTargetLane > -Math.floor(laneCount * .5)) {
-			carTargetLane--;
+		if(Application.keyboard.keyPressed(KeyCode.D) && playerTargetLane < Math.floor(laneCount * .5)) {
+			playerTargetLane++;
+		} else if(Application.keyboard.keyPressed(KeyCode.A) && playerTargetLane > -Math.floor(laneCount * .5)) {
+			playerTargetLane--;
 		}
 
-		carTargetZ += delta;
+		playerTargetZ += delta;
 		if(Application.keyboard.keyDown(KeyCode.W)) {
-			carTargetZ -= delta * carSpeed.y;
+			playerTargetZ -= delta * playerSpeed.y;
 		} else if(Application.keyboard.keyDown(KeyCode.S)) {
-			carTargetZ += delta * carSpeed.y;
+			playerTargetZ += delta * playerSpeed.y;
 		}
-		carTargetZ = MathExt.clamp(carTargetZ, -carMaxZ, 0);
+		playerTargetZ = MathExt.clamp(playerTargetZ, -playerMaxZ, 0);
 	}
 
 	private inline function movePlayerCar(delta:Float) {
-		var carDeltaX = carTargetLane * laneWidth - meshRacingCar.position.x;
+		var carDeltaX = playerTargetLane * laneWidth - meshRacingCar.position.x;
 		var translation:Vector3 = new Vector3(0, 0, 0);
 		if(Math.abs(carDeltaX) > 0.05) {
-			translation.x = delta * carSpeed.x * MathExt.clamp(carDeltaX, -1, 1);
+			translation.x = delta * playerSpeed.x * MathExt.clamp(carDeltaX, -1, 1);
 		}
 		
-		if(carTargetZ != 1) {
-			var carDeltaZ = carTargetZ - meshRacingCar.position.z;
-			translation.z = delta * carSpeed.y * MathExt.clamp(carDeltaZ, -1, 1);
+		if(playerTargetZ != 1) {
+			var carDeltaZ = playerTargetZ - meshRacingCar.position.z;
+			translation.z = delta * playerSpeed.y * MathExt.clamp(carDeltaZ, -1, 1);
 		}
 		
 		meshRacingCar.translate(translation);
 		boundsRacingCar.translate(translation);
 	}
 
-	private inline function tryCreateAICar(delta:Float) {
-		creationCounter += delta;
-		if(creationCounter > aiCreationTime) {
-			var car:AICar = getDeadAICar();
-			if(car != null) { car.alive = true; }
-			else { car = createAICar(); }
-			car.lane = Math.floor(Math.random() * laneCount) - Math.floor(laneCount * .5);
-			car.position.z = -worldSizeY;
-			car.position.x = laneWidth * car.lane;
-			
-			creationCounter = 0;
+	private inline function tryCreateAICar() {
+		var car:AICar = null;
+		for(c in aiCars) {
+			if(!c.alive) { car = c; break; }
 		}
+		if(car == null) { car = createAICar(); }
+		car.alive = true;
+		car.lane = Math.floor(Math.random() * laneCount) - Math.floor(laneCount * .5);
+		car.position.x = laneWidth * car.lane;
+		car.position.z = -worldSizeY;
+	}
+
+	private inline function tryCreateSideDecoration() {
+		var decoration:SideDecoration = null;
+		for(d in sideDecorations) {
+			if(!d.alive) { decoration = d; break; }
+		}
+		if(decoration == null) { decoration = createSideDecoration(); }
+		decoration.alive = true;
+		decoration.rotation.x = Math.random() * Math.PI * 2;
+		decoration.scale.x = decoration.scale.y = decoration.scale.z = Math.random() * 0.1 + 1;
+		decoration.position.x = (Math.random() + 1) * (Math.random() > 0.5 ? -1 : 1);
+		decoration.position.z = -worldSizeY;
 	}
 
 	private inline function createAICar():AICar {
 		var car:AICar = {
 			alive: false,
 			lane: 0,
-			carSpeed: new Vector2(0, 1 + Math.random()),
-			carModel: 0,
+			moveSpeed: new Vector2(0, 1 + Math.random()),
+			model: 0,
 			position: new Vector3(0, 0, 0)
 		};
 		aiCars.push(car);
 		return car;
 	}
 
-	private function getDeadAICar():AICar {
-		for(car in aiCars) {
-			if(!car.alive) { return car; }
-		}
-		return null;
+	private inline function createSideDecoration():SideDecoration {
+		var decoration:SideDecoration = {
+			alive: false,
+			model: 0,
+			position: new Vector3(1, 0, -worldSizeY),
+			rotation: new Vector3(0, 0, 0),
+			scale: new Vector3(1, 1, 1)
+		};
+		sideDecorations.push(decoration);
+		return decoration;
 	}
 
 	private inline function moveAICars(delta:Float) {
 		for(car in aiCars) {
 			if(car.alive) {
-				var deltaZ:Float = delta * (carSpeed.y + car.carSpeed.y);
+				var deltaZ:Float = delta * (playerSpeed.y + car.moveSpeed.y);
 				car.position.z += deltaZ;
 				if(car.position.z > worldSizeY) {
 					car.alive = false;
 				}
+			}
+		}
+	}
+
+	private inline function moveDecorations(delta:Float) {
+		for(decoration in sideDecorations) {
+			decoration.position.z += delta * playerSpeed.y;
+			if(decoration.position.z > worldSizeY) {
+				decoration.alive = false;
 			}
 		}
 	}
@@ -278,6 +333,7 @@ class SimpleCarGame extends AppState {
 					worldSizeY = ui.slider(Id.handle({value: worldSizeY}), "World Wrap Y", 0, 100, true, 1);
 					laneWidth = ui.slider(Id.handle({value: laneWidth}), "Lane Width", 0, 3, true, 10);
 					laneCount = Math.floor(ui.slider(Id.handle({value: laneCount}), "Lane Count", 0, 10, true, 1));
+					decorationCreationCounter.targetValue = ui.slider(Id.handle({value: decorationCreationCounter.targetValue}), "Decoration Creation Time", 0.01, 10, true, 100);
 				}
 				if(ui.panel(Id.handle({selected: false}), "Camera")) {
 					ZUIUtils.vector3Sliders(ui, Id.handle(), cameraFrom, "Camera From", -worldSizeY, worldSizeY, 10);
@@ -287,20 +343,20 @@ class SimpleCarGame extends AppState {
 					cameraFov = ui.slider(Id.handle({value: cameraFov}), "Camera FOV", 0, 180, true, 100);
 				}
 				if(ui.panel(Id.handle({selected: false}), "Car Movement")) {
-					ui.text('Car target Lane: $carTargetLane');
+					ui.text('Car target Lane: $playerTargetLane');
 					ui.text("Racing Car Mesh Position: " + meshRacingCar.position);
-					ZUIUtils.vector2Sliders(ui, Id.handle(), carSpeed, "Car Speed", 0, 30, 10);
-					ui.text('Car target Z: $carTargetZ');
-					carMaxZ = ui.slider(Id.handle({value: carMaxZ}), "Car Max Z", 0, worldSizeY, true, 10);
-					carWidth = ui.slider(Id.handle({value: carWidth}), "Car Width", 0, 3, true, 10);
+					ZUIUtils.vector2Sliders(ui, Id.handle(), playerSpeed, "Car Speed", 0, 30, 10);
+					ui.text('Car target Z: $playerTargetZ');
+					playerMaxZ = ui.slider(Id.handle({value: playerMaxZ}), "Car Max Z", 0, worldSizeY, true, 10);
+					playerWidth = ui.slider(Id.handle({value: playerWidth}), "Car Width", 0, 3, true, 10);
 				}
 				if(ui.panel(Id.handle({selected: false}), "Collisions")) {
 					drawBounds = ui.check(Id.handle(), "Draw Collision Bounds");
-					ZUIUtils.vector3Sliders(ui, Id.handle(), carBoundScale, "Car Bounds Scale", 0, 2, 100);
+					ZUIUtils.vector3Sliders(ui, Id.handle(), boundsScale, "Car Bounds Scale", 0, 2, 100);
 				}
 				ZUIUtils.lightingParameters(ui, Id.handle(), lightDirection, lightColor, ambientColor, false);
 				if(ui.panel(Id.handle({selected: false}), "AI Cars")) {
-					aiCreationTime = ui.slider(Id.handle({value: aiCreationTime}), "AI Creation Time", 0, 10, true, 10);
+					aiCreationCounter.targetValue = ui.slider(Id.handle({value: aiCreationCounter.targetValue}), "AI Creation Time", 0.1, 10, true, 10);
 				}
 				if(ui.panel(Id.handle({selected: false}), "Post Processing")) {
 					fxaaOn = ui.check(Id.handle({selected: fxaaOn}), "FXAA");
