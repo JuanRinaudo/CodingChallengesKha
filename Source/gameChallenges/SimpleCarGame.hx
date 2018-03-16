@@ -99,7 +99,7 @@ class SimpleCarGame extends AppState {
 	public static function initApplication() {
 		return new Application(
 			{title: SimpleCarGame.NAME, width: SimpleCarGame.CANVAS_WIDTH, height: SimpleCarGame.CANVAS_HEIGHT},
-			{initState: SimpleCarGame}
+			{initState: SimpleCarGame, defaultFontName: "KenPixel"}
 		);
 	}
 

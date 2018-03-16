@@ -64,7 +64,7 @@ class SimpleLighting extends AppState {
 	public static function initApplication() {
 		return new Application(
 			{title: SimpleLighting.NAME, width: SimpleLighting.CANVAS_WIDTH, height: SimpleLighting.CANVAS_HEIGHT},
-			{initState: SimpleLighting}
+			{initState: SimpleLighting, defaultFontName: "KenPixel"}
 		);
 	}
 

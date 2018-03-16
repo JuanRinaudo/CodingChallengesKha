@@ -60,7 +60,7 @@ class SineCubesState extends AppState {
 	public static function initApplication() {
 		return new Application(
 			{title: SineCubesState.NAME, width: SineCubesState.CANVAS_WIDTH, height: SineCubesState.CANVAS_HEIGHT},
-			{initState: SineCubesState}
+			{initState: SineCubesState, defaultFontName: "KenPixel"}
 		);
 	}
 	

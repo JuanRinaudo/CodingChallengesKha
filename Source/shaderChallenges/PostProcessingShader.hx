@@ -77,7 +77,7 @@ class PostProcessingShader extends AppState {
 	public static function initApplication():Application {
 		return new Application(
 			{title: PostProcessingShader.NAME, width: PostProcessingShader.CANVAS_WIDTH, height: PostProcessingShader.CANVAS_HEIGHT},
-			{initState: PostProcessingShader}
+			{initState: PostProcessingShader, defaultFontName: "KenPixel"}
 		);
 	}
 

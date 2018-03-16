@@ -50,7 +50,7 @@ class TransitionShaders extends AppState {
     public static function initApplication():Application {
 		return new Application(
 			{title: TransitionShaders.NAME, width: TransitionShaders.CANVAS_WIDTH, height: TransitionShaders.CANVAS_HEIGHT},
-			{initState: TransitionShaders}
+			{initState: TransitionShaders, defaultFontName: "KenPixel"}
 		);
 	}
 

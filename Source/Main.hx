@@ -6,7 +6,8 @@ import kext.Application;
 // import shaderChallenges.TransitionShaders;
 // import shaderChallenges.TextureCutoffMeshShader;
 // import shaderChallenges.PostProcessingShader;
-import gameChallenges.SimpleCarGame;
+// import gameChallenges.SimpleCarGame;
+import simpleChallenges.SimpleBones;
 
 class Main {
 	private static var application:Application;
@@ -17,7 +18,8 @@ class Main {
 		// application = TransitionShaders.initApplication(); //Challenge 003
 		// application = TextureCutoffMeshShader.initApplication(); //Challenge 004
 		// application = PostProcessingShader.initApplication(); //Challenge 005
-		application = SimpleCarGame.initApplication(); //Challenge 006
+		// application = SimpleCarGame.initApplication(); //Challenge 006
+		application = SimpleBones.initApplication(); //Challenge 007
 	}
 
 }

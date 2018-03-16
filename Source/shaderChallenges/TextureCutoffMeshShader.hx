@@ -54,7 +54,7 @@ class TextureCutoffMeshShader extends AppState {
 	public static function initApplication():Application {
 		return new Application(
 			{title: TextureCutoffMeshShader.NAME, width: TextureCutoffMeshShader.CANVAS_WIDTH, height: TextureCutoffMeshShader.CANVAS_HEIGHT},
-			{initState: TextureCutoffMeshShader}
+			{initState: TextureCutoffMeshShader, defaultFontName: "KenPixel"}
 		);
 	}
 
