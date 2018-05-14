@@ -5,6 +5,7 @@ import kha.Color;
 import kha.Image;
 import kha.Framebuffer;
 import kha.Shaders;
+import kha.math.FastVector3;
 
 import kext.Application;
 import kext.AppState;
@@ -32,10 +33,15 @@ class SimpleBones extends AppState {
 	public function new() {
 		super();
 
-		pipeline = new BasicPipeline(Shaders.colored_vert, Shaders.colored_frag);
+		pipeline = new BasicPipeline(Shaders.normals_vert, Shaders.normals_frag);
+		pipeline.upVector = new FastVector3(0, 0, 1);
+		// pipeline.orthogonal(5, 1);
+		pipeline.cameraLookAt(
+			new FastVector3(1, 1, 1).mult(20),
+			new FastVector3(0, 0, 0));
 		pipeline.compile();
 
-		mesh = BasicMesh.getOGEXMesh(Assets.blobs.ogexTest_ogex, pipeline.vertexStructure, Color.Red);
+		mesh = BasicMesh.getOGEXMesh(Assets.blobs.boneTest_ogex, pipeline.vertexStructure, Color.Red, 0);
 	}
 
 	override public function update(delta:Float) {
@@ -43,6 +49,10 @@ class SimpleBones extends AppState {
 	}
 
 	override public function render(backbuffer:Image) {
+		pipeline.cameraLookAt(
+			new FastVector3(1, 1, Math.sin(Application.time)).mult(20),
+			new FastVector3(0, 0, 0));
+
 		backbuffer.g4.begin();
 		backbuffer.g4.clear(Color.Black, Math.POSITIVE_INFINITY);
 
