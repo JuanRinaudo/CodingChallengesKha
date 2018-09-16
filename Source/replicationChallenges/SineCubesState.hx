@@ -105,6 +105,8 @@ class SineCubesState extends AppState {
 		backbuffer.g4.clear(Color.Black, Math.POSITIVE_INFINITY);
 
 		renderCubes(backbuffer);
+
+		backbuffer.g4.end();
 	}
 
 	private inline function renderCubes(backbuffer:Image) {
@@ -154,7 +156,6 @@ class SineCubesState extends AppState {
 				backbuffer.g4.drawIndexedVertices();
 			}
 		}
-		backbuffer.g4.end();
 	}
 
 	override public function renderFramebuffer(framebuffer:Framebuffer) {
