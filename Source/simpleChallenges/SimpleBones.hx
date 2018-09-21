@@ -42,7 +42,6 @@ class SimpleBones extends AppState {
 	public function new() {
 		super();
 
-		cameraSpeed = 0;
 		cameraPosition = new FastVector3(5, 5, 5);
 
 		basicPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.textured_frag);
@@ -98,6 +97,7 @@ class SimpleBones extends AppState {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {
 				cameraSpeed = ui.slider(Id.handle({value: cameraSpeed}), "Camera Speed", 0, 100, true, 10, true);
+				animatedMesh.fps = ui.slider(Id.handle({value: animatedMesh.fps}), "Animation FPS", 0, 300, true, 1, true);
 			}
 		}
 		ui.end();
