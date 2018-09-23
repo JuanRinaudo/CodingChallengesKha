@@ -1,5 +1,6 @@
 package simpleChallenges;
 
+import kext.g4basics.Camera3D;
 import kha.Assets;
 import kha.Color;
 import kha.Image;
@@ -29,8 +30,10 @@ class SimpleBones extends AppState {
 	private var animatedMesh:SkeletalMesh;
 	private var basicMesh:BasicMesh;
 
-	private var cameraSpeed:Float = 10;
-	private var cameraPosition:FastVector3;
+	private var characterSpeed:Float = 10;
+	private var characterPosition:Vector3;
+
+	private var camera:Camera3D;
 
 	public static function initApplication() {
 		return new Application(
@@ -42,11 +45,12 @@ class SimpleBones extends AppState {
 	public function new() {
 		super();
 
-		cameraPosition = new FastVector3(5, 5, 5);
+		camera = new Camera3D();
+		Application.mainCamera = camera;
+		characterPosition = new Vector3(0, 0, 0);
 
 		basicPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.textured_frag);
 		basicPipeline.compile();
-		// basicMesh = BasicMesh.getOGEXMesh(Assets.blobs.ogexTest_ogex, basicPipeline.vertexStructure, Color.Red);
 		basicMesh = BasicMesh.getOGEXMesh(Assets.blobs.CharacterRunning_ogex, basicPipeline.vertexStructure, Color.White);
 		basicMesh.transform.setPosition(new kha.math.Vector3(5, 0, 0));
 		basicMesh.transform.scaleTransform(new Vector3(.4, .4, .4));
@@ -63,25 +67,22 @@ class SimpleBones extends AppState {
 
 	override public function update(delta:Float) {
 		if(Application.keyboard.keyDown(kha.input.KeyCode.A)) {
-			cameraPosition.x += Application.deltaTime * cameraSpeed;
+			characterPosition.x += Application.deltaTime * characterSpeed;
 		} else if(Application.keyboard.keyDown(kha.input.KeyCode.D)) {
-			cameraPosition.x -= Application.deltaTime * cameraSpeed;
+			characterPosition.x -= Application.deltaTime * characterSpeed;
 		}
 		if(Application.keyboard.keyDown(kha.input.KeyCode.W)) {
-			cameraPosition.y += Application.deltaTime * cameraSpeed;
+			characterPosition.z += Application.deltaTime * characterSpeed;
 		} else if(Application.keyboard.keyDown(kha.input.KeyCode.S)) {
-			cameraPosition.y -= Application.deltaTime * cameraSpeed;
+			characterPosition.z -= Application.deltaTime * characterSpeed;
 		}
-		if(Application.keyboard.keyDown(kha.input.KeyCode.Q)) {
-			cameraPosition.z += Application.deltaTime * cameraSpeed;
-		} else if(Application.keyboard.keyDown(kha.input.KeyCode.E)) {
-			cameraPosition.z -= Application.deltaTime * cameraSpeed;
-		}
-		basicPipeline.cameraLookAt(cameraPosition, new FastVector3(0, 0, 0));
-		animatedPipeline.cameraLookAt(cameraPosition, new FastVector3(0, 0, 0));
 	}
 
 	override public function render(backbuffer:Image) {
+		animatedMesh.transform.setPosition(characterPosition);
+		var fastCharacterPosition:FastVector3 = new FastVector3(characterPosition.x, characterPosition.y, characterPosition.z);
+		camera.lookAt(camera.transform.position.fast(), fastCharacterPosition);
+		
 		backbuffer.g4.begin();
 		backbuffer.g4.clear(Color.Black, Math.POSITIVE_INFINITY);
 
@@ -96,7 +97,7 @@ class SimpleBones extends AppState {
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {
-				cameraSpeed = ui.slider(Id.handle({value: cameraSpeed}), "Camera Speed", 0, 100, true, 10, true);
+				characterSpeed = ui.slider(Id.handle({value: characterSpeed}), "Camera Speed", 0, 100, true, 10, true);
 				animatedMesh.fps = ui.slider(Id.handle({value: animatedMesh.fps}), "Animation FPS", 0, 300, true, 1, true);
 			}
 		}
