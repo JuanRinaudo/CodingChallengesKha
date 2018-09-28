@@ -47,13 +47,13 @@ class SimpleBones extends AppState {
 
 		camera = new Camera3D();
 		Application.mainCamera = camera;
-		characterPosition = new Vector3(0, 0, 0);
+		characterPosition = new Vector3(0, 6, 8);
 
 		basicPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.textured_frag);
 		basicPipeline.compile();
 		basicMesh = BasicMesh.getOGEXMesh(Assets.blobs.CharacterRunning_ogex, basicPipeline.vertexStructure, Color.White);
 		basicMesh.transform.setPosition(new kha.math.Vector3(5, 0, 0));
-		basicMesh.transform.scaleTransform(new Vector3(.4, .4, .4));
+		basicMesh.transform.scaleTransform(new Vector3(.7, .7, .7));
 		basicMesh.texture = Assets.images.CharacterTexture;
 
 		animatedPipeline = new BasicPipeline(Shaders.texturedBones_vert, Shaders.textured_frag);
@@ -62,7 +62,7 @@ class SimpleBones extends AppState {
 		animatedPipeline.compile();
 		animatedMesh = SkeletalMesh.getOGEXAnimatedMesh(Assets.blobs.CharacterRunning_ogex, animatedPipeline.vertexStructure, Color.White);
 		animatedMesh.texture = Assets.images.CharacterTexture;
-		animatedMesh.transform.scaleTransform(new Vector3(.4, .4, .4));
+		animatedMesh.transform.scaleTransform(new Vector3(.7, .7, .7));
 	}
 
 	override public function update(delta:Float) {
@@ -72,13 +72,14 @@ class SimpleBones extends AppState {
 			characterPosition.x -= Application.deltaTime * characterSpeed;
 		}
 		if(Application.keyboard.keyDown(kha.input.KeyCode.W)) {
-			characterPosition.z += Application.deltaTime * characterSpeed;
+			characterPosition.y += Application.deltaTime * characterSpeed;
 		} else if(Application.keyboard.keyDown(kha.input.KeyCode.S)) {
-			characterPosition.z -= Application.deltaTime * characterSpeed;
+			characterPosition.y -= Application.deltaTime * characterSpeed;
 		}
 	}
 
 	override public function render(backbuffer:Image) {
+		animatedMesh.transform.rotationY = Application.time;
 		animatedMesh.transform.setPosition(characterPosition);
 		var fastCharacterPosition:FastVector3 = new FastVector3(characterPosition.x, characterPosition.y, characterPosition.z);
 		camera.lookAt(camera.transform.position.fast(), fastCharacterPosition);
