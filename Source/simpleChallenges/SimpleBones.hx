@@ -1,5 +1,6 @@
 package simpleChallenges;
 
+import utils.ZUIUtils;
 import kext.g4basics.Camera3D;
 import kha.Assets;
 import kha.Color;
@@ -27,10 +28,11 @@ class SimpleBones extends AppState {
 	
 	private var basicPipeline:BasicPipeline;
 	private var animatedPipeline:BasicPipeline;
+	private var floor:BasicMesh;
 	private var animatedMesh:SkeletalMesh;
-	private var basicMesh:BasicMesh;
 
 	private var characterSpeed:Float = 10;
+	private var cameraPosition:Vector3;
 	private var characterPosition:Vector3;
 
 	private var camera:Camera3D;
@@ -47,20 +49,21 @@ class SimpleBones extends AppState {
 
 		camera = new Camera3D();
 		Application.mainCamera = camera;
-		characterPosition = new Vector3(0, 6, 8);
+		cameraPosition = new Vector3(0, -10, 10);
+		characterPosition = new Vector3(0, 0, 0);
 
-		basicPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.textured_frag);
+		basicPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.striped_frag);
 		basicPipeline.compile();
-		basicMesh = BasicMesh.getOGEXMesh(Assets.blobs.CharacterRunning_ogex, basicPipeline.vertexStructure, Color.White);
-		basicMesh.transform.setPosition(new kha.math.Vector3(5, 0, 0));
-		basicMesh.transform.scaleTransform(new Vector3(.7, .7, .7));
-		basicMesh.texture = Assets.images.CharacterTexture;
 
 		animatedPipeline = new BasicPipeline(Shaders.texturedBones_vert, Shaders.textured_frag);
 		animatedPipeline.addVertexData(G4Constants.VERTEX_DATA_JOINT_INDEX, VertexData.Float4);
 		animatedPipeline.addVertexData(G4Constants.VERTEX_DATA_JOINT_WEIGHT, VertexData.Float4);
 		animatedPipeline.compile();
-		animatedMesh = SkeletalMesh.getOGEXAnimatedMesh(Assets.blobs.CharacterRunning_ogex, animatedPipeline.vertexStructure, Color.White);
+
+		floor = BasicMesh.createQuadMesh(new Vector3(-1, -1, 0), new Vector3(1, 1, 0), basicPipeline, Color.Green);
+		floor.transform.setScale(new Vector3(10, 10, 1));
+		
+		animatedMesh = SkeletalMesh.getOGEXAnimatedMesh(Assets.blobs.CharacterRunning_ogex, animatedPipeline, Color.White);
 		animatedMesh.texture = Assets.images.CharacterTexture;
 		animatedMesh.transform.scaleTransform(new Vector3(.7, .7, .7));
 	}
@@ -68,27 +71,33 @@ class SimpleBones extends AppState {
 	override public function update(delta:Float) {
 		if(Application.keyboard.keyDown(kha.input.KeyCode.A)) {
 			characterPosition.x += Application.deltaTime * characterSpeed;
+			animatedMesh.transform.rotationY = Math.PI * 0.5;
 		} else if(Application.keyboard.keyDown(kha.input.KeyCode.D)) {
 			characterPosition.x -= Application.deltaTime * characterSpeed;
+			animatedMesh.transform.rotationY = Math.PI * 1.5;
 		}
 		if(Application.keyboard.keyDown(kha.input.KeyCode.W)) {
 			characterPosition.y += Application.deltaTime * characterSpeed;
+			animatedMesh.transform.rotationY = Math.PI;
 		} else if(Application.keyboard.keyDown(kha.input.KeyCode.S)) {
 			characterPosition.y -= Application.deltaTime * characterSpeed;
+			animatedMesh.transform.rotationY = 0;
 		}
 	}
 
 	override public function render(backbuffer:Image) {
-		animatedMesh.transform.rotationY = Application.time;
+		camera.transform.setPosition(cameraPosition);
 		animatedMesh.transform.setPosition(characterPosition);
 		var fastCharacterPosition:FastVector3 = new FastVector3(characterPosition.x, characterPosition.y, characterPosition.z);
-		camera.lookAt(camera.transform.position.fast(), fastCharacterPosition);
+		
+		camera.lookAt(camera.transform.position.fast(), new FastVector3(0, 0, 0));
 		
 		backbuffer.g4.begin();
 		backbuffer.g4.clear(Color.Black, Math.POSITIVE_INFINITY);
 
-		basicMesh.drawMesh(backbuffer, basicPipeline);
-		animatedMesh.drawMesh(backbuffer, animatedPipeline);
+		animatedMesh.drawMesh(backbuffer);
+		
+		floor.drawMesh(backbuffer);
 
 		backbuffer.g4.end();
 	}
@@ -98,7 +107,8 @@ class SimpleBones extends AppState {
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {
-				characterSpeed = ui.slider(Id.handle({value: characterSpeed}), "Camera Speed", 0, 100, true, 10, true);
+				ZUIUtils.vector3Sliders(ui, Id.handle(), cameraPosition, "Camera Position", -10, 10, 10);
+				characterSpeed = ui.slider(Id.handle({value: characterSpeed}), "Character Speed", 0, 100, true, 10, true);
 				animatedMesh.fps = ui.slider(Id.handle({value: animatedMesh.fps}), "Animation FPS", 0, 300, true, 1, true);
 			}
 		}

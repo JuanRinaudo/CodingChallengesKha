@@ -1,5 +1,6 @@
 package utils;
 
+import kext.g4basics.BasicPipeline;
 import kha.Assets;
 import kha.Color;
 import kha.graphics4.VertexStructure;
@@ -23,22 +24,22 @@ class DemoMeshes {
 	public static var SUZANNE_STL:BasicMesh;
 	public static var CAR_FORMULA_STL:BasicMesh;
 
-	public static function init(structure:VertexStructure, color:Color = null) {
-		QUAD_OBJ = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, structure, color);
-		CUBE_OBJ = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, structure, color);
-		SPHERE_OBJ = BasicMesh.getOBJMesh(Assets.blobs.sphere_obj, structure, color);
-		TORUS_OBJ = BasicMesh.getOBJMesh(Assets.blobs.torus_obj, structure, color);
-		ARROW_OBJ = BasicMesh.getOBJMesh(Assets.blobs.arrow_obj, structure, color);
-		SUZANNE_OBJ = BasicMesh.getOBJMesh(Assets.blobs.suzanne_obj, structure, color);
-		CAR_FORMULA_OBJ = BasicMesh.getOBJMesh(Assets.blobs.carFormula_obj, structure, color);
+	public static function init(pipeline:BasicPipeline, color:Color = null) {
+		QUAD_OBJ = BasicMesh.getOBJMesh(Assets.blobs.quad_obj, pipeline, color);
+		CUBE_OBJ = BasicMesh.getOBJMesh(Assets.blobs.cube_obj, pipeline, color);
+		SPHERE_OBJ = BasicMesh.getOBJMesh(Assets.blobs.sphere_obj, pipeline, color);
+		TORUS_OBJ = BasicMesh.getOBJMesh(Assets.blobs.torus_obj, pipeline, color);
+		ARROW_OBJ = BasicMesh.getOBJMesh(Assets.blobs.arrow_obj, pipeline, color);
+		SUZANNE_OBJ = BasicMesh.getOBJMesh(Assets.blobs.suzanne_obj, pipeline, color);
+		CAR_FORMULA_OBJ = BasicMesh.getOBJMesh(Assets.blobs.carFormula_obj, pipeline, color);
 		
-		QUAD_STL = BasicMesh.getSTLMesh(Assets.blobs.quad_stl, structure);
-		CUBE_STL = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, structure);
-		SPHERE_STL = BasicMesh.getSTLMesh(Assets.blobs.sphere_stl, structure);
-		TORUS_STL = BasicMesh.getSTLMesh(Assets.blobs.torus_stl, structure);
-		ARROW_STL = BasicMesh.getSTLMesh(Assets.blobs.arrow_stl, structure);
-		SUZANNE_STL = BasicMesh.getSTLMesh(Assets.blobs.suzanne_stl, structure);
-		CAR_FORMULA_STL = BasicMesh.getSTLMesh(Assets.blobs.carFormula_stl, structure);
+		QUAD_STL = BasicMesh.getSTLMesh(Assets.blobs.quad_stl, pipeline);
+		CUBE_STL = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, pipeline);
+		SPHERE_STL = BasicMesh.getSTLMesh(Assets.blobs.sphere_stl, pipeline);
+		TORUS_STL = BasicMesh.getSTLMesh(Assets.blobs.torus_stl, pipeline);
+		ARROW_STL = BasicMesh.getSTLMesh(Assets.blobs.arrow_stl, pipeline);
+		SUZANNE_STL = BasicMesh.getSTLMesh(Assets.blobs.suzanne_stl, pipeline);
+		CAR_FORMULA_STL = BasicMesh.getSTLMesh(Assets.blobs.carFormula_stl, pipeline);
 	}
 
 }

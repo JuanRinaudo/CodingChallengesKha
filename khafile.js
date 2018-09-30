@@ -10,7 +10,7 @@ project.addShaders('Assets/Shaders/**');
 // project.addAssets('Assets/Images/**');
 project.addAssets('Assets/Common/**');
 project.addAssets('Assets/BasicGeometry/**');
-// project.addAssets('Assets/Models/**');
+project.addAssets('Assets/Models/**');
 project.addAssets('Assets/Bones/**');
 
 // project.addAssets('Assets/Transitions/**');

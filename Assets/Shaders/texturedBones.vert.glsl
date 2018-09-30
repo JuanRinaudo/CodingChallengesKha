@@ -13,6 +13,7 @@ out vec4 fragmentColor;
 out vec2 texCoord;
 
 uniform mat4 JOINT_TRANSFORMS[MAX_JOINTS];
+
 uniform mat4 MVP_MATRIX;
 
 void main() {
