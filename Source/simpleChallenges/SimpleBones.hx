@@ -32,8 +32,15 @@ class SimpleBones extends AppState {
 	private var animatedMesh:SkeletalMesh;
 
 	private var characterSpeed:Float = 10;
-	private var cameraPosition:Vector3;
 	private var characterPosition:Vector3;
+
+	private var lookAtCharacter:Bool = true;
+	private var cameraPosition:Vector3;
+	private var cameraAngle:Float = 0;
+
+	private var rotateArroundChacter:Bool = false;
+	private var cameraRotationSpeed:Float = 0.2;
+	private var cameraRotationRadius:Float = 10;
 
 	private var camera:Camera3D;
 
@@ -69,20 +76,36 @@ class SimpleBones extends AppState {
 	}
 
 	override public function update(delta:Float) {
+		handleCharacterMovement(delta);
+		if(rotateArroundChacter) {
+			rotateCamera(delta);
+		}
+
+		animatedMesh.update(delta);
+	}
+
+	private function handleCharacterMovement(delta:Float) {
 		if(Application.keyboard.keyDown(kha.input.KeyCode.A)) {
-			characterPosition.x += Application.deltaTime * characterSpeed;
+			characterPosition.x += delta * characterSpeed;
 			animatedMesh.transform.rotationY = Math.PI * 0.5;
 		} else if(Application.keyboard.keyDown(kha.input.KeyCode.D)) {
-			characterPosition.x -= Application.deltaTime * characterSpeed;
+			characterPosition.x -= delta * characterSpeed;
 			animatedMesh.transform.rotationY = Math.PI * 1.5;
 		}
 		if(Application.keyboard.keyDown(kha.input.KeyCode.W)) {
-			characterPosition.y += Application.deltaTime * characterSpeed;
+			characterPosition.y += delta * characterSpeed;
 			animatedMesh.transform.rotationY = Math.PI;
 		} else if(Application.keyboard.keyDown(kha.input.KeyCode.S)) {
-			characterPosition.y -= Application.deltaTime * characterSpeed;
+			characterPosition.y -= delta * characterSpeed;
 			animatedMesh.transform.rotationY = 0;
 		}
+	}
+
+	private function rotateCamera(delta:Float) {
+		cameraAngle += delta * cameraRotationSpeed * Math.PI * 2;
+
+		cameraPosition.x = characterPosition.x + Math.sin(cameraAngle) * cameraRotationRadius;
+		cameraPosition.y = characterPosition.y + Math.cos(cameraAngle) * cameraRotationRadius;
 	}
 
 	override public function render(backbuffer:Image) {
@@ -90,14 +113,18 @@ class SimpleBones extends AppState {
 		animatedMesh.transform.setPosition(characterPosition);
 		var fastCharacterPosition:FastVector3 = new FastVector3(characterPosition.x, characterPosition.y, characterPosition.z);
 		
-		camera.lookAt(camera.transform.position.fast(), new FastVector3(0, 0, 0));
+		camera.lookAt(
+			camera.transform.position.fast(),
+			lookAtCharacter ? characterPosition.fast() : new FastVector3(0, 0, 0),
+			new FastVector3(0, 0, -1)
+		);
 		
 		backbuffer.g4.begin();
 		backbuffer.g4.clear(Color.Black, Math.POSITIVE_INFINITY);
 
-		animatedMesh.drawMesh(backbuffer);
+		animatedMesh.render(backbuffer);
 		
-		floor.drawMesh(backbuffer);
+		floor.render(backbuffer);
 
 		backbuffer.g4.end();
 	}
@@ -107,9 +134,20 @@ class SimpleBones extends AppState {
 		if(ui.window(Id.handle(), 0, 0, 400, 800)) {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {
-				ZUIUtils.vector3Sliders(ui, Id.handle(), cameraPosition, "Camera Position", -10, 10, 10);
+				lookAtCharacter = ui.check(Id.handle({selected: lookAtCharacter}), "Look At Character");
+
 				characterSpeed = ui.slider(Id.handle({value: characterSpeed}), "Character Speed", 0, 100, true, 10, true);
-				animatedMesh.fps = ui.slider(Id.handle({value: animatedMesh.fps}), "Animation FPS", 0, 300, true, 1, true);
+				
+				rotateArroundChacter = ui.check(Id.handle({selected: rotateArroundChacter}), "Rotate Arround Chacter");
+				if(rotateArroundChacter) {
+					cameraRotationRadius = ui.slider(Id.handle({value: cameraRotationRadius}), "Camera Rotation Radius", 0, 100, true, 10, true);
+					cameraRotationSpeed = ui.slider(Id.handle({value: cameraRotationSpeed}), "Camera Rotation Speed", -25, 25, true, 10, true);
+					cameraPosition.z = ui.slider(Id.handle({value: cameraPosition.z}), "Camera Position Z", -25, 25, true, 10, true);
+				} else {
+					ZUIUtils.vector3Sliders(ui, Id.handle(), cameraPosition, "Camera Position", -25, 25, 10);
+				}
+
+				animatedMesh.animationSpeed = ui.slider(Id.handle({value: animatedMesh.animationSpeed}), "Animation Speed", -10, 10, true, 10, true);
 			}
 		}
 		ui.end();
