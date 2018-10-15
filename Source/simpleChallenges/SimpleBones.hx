@@ -114,7 +114,6 @@ class SimpleBones extends AppState {
 		var fastCharacterPosition:FastVector3 = new FastVector3(characterPosition.x, characterPosition.y, characterPosition.z);
 		
 		camera.lookAt(
-			camera.transform.position.fast(),
 			lookAtCharacter ? characterPosition.fast() : new FastVector3(0, 0, 0),
 			new FastVector3(0, 0, -1)
 		);

@@ -7,11 +7,12 @@ project.addLibrary('tweenxcore');
 project.addShaders('Assets/Shaders/**');
 // project.addShaders('Assets/PostProcessingShaders/**');
 
-// project.addAssets('Assets/Images/**');
 project.addAssets('Assets/Common/**');
-project.addAssets('Assets/BasicGeometry/**');
-project.addAssets('Assets/Models/**');
-project.addAssets('Assets/Bones/**');
+
+// project.addAssets('Assets/Images/**');
+// project.addAssets('Assets/BasicGeometry/**');
+// project.addAssets('Assets/Models/**');
+// project.addAssets('Assets/Bones/**');
 
 // project.addAssets('Assets/Transitions/**');
 // project.addAssets('Assets/GameAssets/SimpleCarGame');
