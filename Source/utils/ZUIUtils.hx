@@ -48,24 +48,14 @@ class ZUIUtils {
 		}
 	}
 
-	public static function meshSelector(ui:Zui, handle: Handle, lastValue:BasicMesh, selected:Bool = true, uiOBJ:Bool = true, uiSTL:Bool = false):BasicMesh {
+	public static function meshSelector(ui:Zui, handle: Handle, lastValue:BasicMesh, selected:Bool = true):BasicMesh {
 		if(ui.panel(handle.nest(0, {selected: selected}), "Mesh Type")) {
-			if(uiOBJ) {
-				if(ui.button("Cube OBJ")) { return DemoMeshes.CUBE_OBJ; }
-				if(ui.button("Sphere OBJ")) { return DemoMeshes.SPHERE_OBJ; }
-				if(ui.button("Torus OBJ")) { return DemoMeshes.TORUS_OBJ; }
-				if(ui.button("Arrow OBJ")) { return DemoMeshes.ARROW_OBJ; }
-				if(ui.button("Suzanne OBJ")) { return DemoMeshes.SUZANNE_OBJ; }
-				if(ui.button("Racing Car OBJ")) { return DemoMeshes.CAR_FORMULA_OBJ; }
-			}
-			if(uiSTL) {
-				if(ui.button("Cube STL")) { return DemoMeshes.CUBE_STL; }
-				if(ui.button("Sphere STL")) { return DemoMeshes.SPHERE_STL; }
-				if(ui.button("Torus STL")) { return DemoMeshes.TORUS_STL; }
-				if(ui.button("Arrow STL")) { return DemoMeshes.ARROW_STL; }
-				if(ui.button("Suzanne STL")) { return DemoMeshes.SUZANNE_STL; }
-				if(ui.button("Racing Car STL")) { return DemoMeshes.CAR_FORMULA_STL; }
-			}
+			if(ui.button("Quad")) { return DemoMeshes.QUAD; }
+			if(ui.button("Cube")) { return DemoMeshes.CUBE; }
+			if(ui.button("Sphere")) { return DemoMeshes.SPHERE; }
+			if(ui.button("Torus")) { return DemoMeshes.TORUS; }
+			if(ui.button("Arrow")) { return DemoMeshes.ARROW; }
+			if(ui.button("Suzanne")) { return DemoMeshes.SUZANNE; }
 		}
 		return lastValue;
 	}

@@ -5,17 +5,19 @@ project.addLibrary('kext');
 project.addLibrary('tweenxcore');
 
 project.addShaders('Assets/Shaders/**');
-// project.addShaders('Assets/PostProcessingShaders/**');
 
 project.addAssets('Assets/Common/**');
 
-// project.addAssets('Assets/Images/**');
-// project.addAssets('Assets/BasicGeometry/**');
 // project.addAssets('Assets/Models/**');
 // project.addAssets('Assets/Bones/**');
 
 // project.addAssets('Assets/Transitions/**');
 // project.addAssets('Assets/GameAssets/SimpleCarGame');
+
+//005 - Post Processing
+project.addAssets('Assets/BasicGeometry/**');
+project.addAssets('Assets/Images/**');
+project.addShaders('Assets/PostProcessingShaders/**');
 
 project.addSources('Source');
 

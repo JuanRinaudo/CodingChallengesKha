@@ -1,5 +1,6 @@
 package shaderChallenges;
 
+import kext.g4basics.Camera3D;
 import kha.Assets;
 import kha.Color;
 import kha.Image;
@@ -41,9 +42,11 @@ class PostProcessingShader extends AppState {
 	private static inline var CANVAS_HEIGHT:Int = 800;
 	private static inline var NAME:String = "Post Processing Shader";
 
-	private var pipelineCube:BasicPipeline;
-	private var pipelineLenna:BasicPipeline;
+	private var camera:Camera3D;
+
+	private var pipeline:BasicPipeline;
 	private var mesh:BasicMesh;
+
 	private var texture:Image;
 	private var effectList:Array<PostProcessingEfect> = [];
 
@@ -84,39 +87,38 @@ class PostProcessingShader extends AppState {
 	public function new() {
 		super();
 
-		pipelineCube = new BasicPipeline(Shaders.testColored_vert, Shaders.colored_frag);
-		pipelineCube.orthogonal(5, CANVAS_WIDTH / CANVAS_HEIGHT);
-		pipelineCube.compile();
+		camera = new Camera3D();
+		camera.transform.setPosition(new Vector3(0, 0, 10));
+		camera.orthogonal(5, CANVAS_WIDTH / CANVAS_HEIGHT);
+		camera.lookAt(new FastVector3(0, 0, 0));
 		
-		pipelineLenna = new BasicPipeline(Shaders.textured_vert, Shaders.textured_frag);
-		pipelineLenna.orthogonal(5, CANVAS_WIDTH / CANVAS_HEIGHT);
-		pipelineLenna.cameraLookAt(new FastVector3(0, -10, 0.1), new FastVector3(0, 0, 0));
-		pipelineLenna.compile();
+		pipeline = new BasicPipeline(Shaders.textured_vert, Shaders.textured_frag, camera);
+		pipeline.compile();
 
-		DemoMeshes.init(pipelineCube.vertexStructure, Color.White);
-		DemoMeshes.CUBE_OBJ.transform.setScale(new Vector3(3, 3, 3));
-		DemoMeshes.QUAD_OBJ.transform.setScale(new Vector3(4, 4, 4));
+		DemoMeshes.init(pipeline, Color.White);
+		DemoMeshes.QUAD.transform.setScale(new Vector3(4, 4, 4));
+		DemoMeshes.QUAD.transform.rotate(new Vector3(Math.PI, 0, 0));
+		DemoMeshes.CUBE.transform.setScale(new Vector3(3, 3, 3));
 
-		mesh = DemoMeshes.CUBE_OBJ;
+		mesh = DemoMeshes.CUBE;
 		texture = Assets.images.Lenna;
 	}
 
 	override public function render(backbuffer:Image) {
-		DemoMeshes.CUBE_OBJ.transform.setRotation(new Vector3(Application.deltaTime, 0, 0));
+		DemoMeshes.CUBE.transform.rotate(new Vector3(Application.deltaTime, 0, 0));
 
 		beginAndClear3D(backbuffer);
-		mesh.setBufferMesh(backbuffer);
-		if(mesh == DemoMeshes.CUBE_OBJ) {
-			backbuffer.g4.setPipeline(pipelineCube);
-			backbuffer.g4.setMatrix(pipelineCube.locationMVPMatrix, pipelineCube.getMVPMatrix(mesh.modelMatrix));
-		} else {
-			backbuffer.g4.setPipeline(pipelineLenna);
-			backbuffer.g4.setTexture(pipelineLenna.textureUnit, texture);
-			pipelineLenna.setDefaultTextureUnitParameters(backbuffer, pipelineLenna.textureUnit);
-			backbuffer.g4.setMatrix(pipelineLenna.locationMVPMatrix, pipelineLenna.getMVPMatrix(mesh.modelMatrix));
-		}
-		backbuffer.g4.drawIndexedVertices();
-		backbuffer.g4.end();
+		backbuffer.g4.setPipeline(pipeline);
+		// backbuffer.g4.setMatrix(pipeline.locationMVPMatrix, pipeline.getMVPMatrix(mesh.modelMatrix));
+		backbuffer.g4.setTexture(pipeline.textureUnit, texture);
+		pipeline.setDefaultTextureUnitParameters(backbuffer, pipeline.textureUnit);
+		// if(mesh == DemoMeshes.CUBE) {
+
+		// } else {
+
+		// }
+		mesh.render(backbuffer);
+		end3D(backbuffer);
 	}
 
 	override public function renderFramebuffer(framebuffer:Framebuffer) {
@@ -125,9 +127,9 @@ class PostProcessingShader extends AppState {
 			uiToggle = ui.check(Id.handle({selected: true}), "UI On/Off");
 			if(uiToggle) {
 				if(ui.panel(Id.handle({selected: true}), "General")) {
-					if(ui.button("Test Cube")) { mesh = DemoMeshes.CUBE_OBJ; }
-					if(ui.button("Lena Image")) { mesh = DemoMeshes.QUAD_OBJ; texture = Assets.images.Lenna; }
-					if(ui.button("Test Image")) { mesh = DemoMeshes.QUAD_OBJ; texture = Assets.images.Test; }
+					if(ui.button("Test Cube")) { mesh = DemoMeshes.CUBE; }
+					if(ui.button("Lena Image")) { mesh = DemoMeshes.QUAD; texture = Assets.images.Lenna; }
+					if(ui.button("Test Image")) { mesh = DemoMeshes.QUAD; texture = Assets.images.Test; }
 				}
 				for(effect in effectList) {
 					switch(effect) {
