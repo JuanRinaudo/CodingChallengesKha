@@ -1,5 +1,6 @@
 package utils;
 
+import kha.graphics4.TextureAddressing;
 import kha.Color;
 import kha.math.Vector2;
 import kha.math.Vector3;
@@ -57,7 +58,16 @@ class ZUIUtils {
 			if(ui.button("Arrow")) { return DemoMeshes.ARROW; }
 			if(ui.button("Suzanne")) { return DemoMeshes.SUZANNE; }
 		}
-		return lastValue;
+		return null;
+	}
+
+	public static function textureAddresing(ui:Zui, handle: Handle, value:TextureAddressing, label:String = null, selected:Bool = false):TextureAddressing {
+		if(ui.panel(handle.nest(0, {selected: selected}), label == null ? "Texture Addressing" : label)) {
+			if(ui.button("Repeat")) { return Repeat; }
+			if(ui.button("Mirror")) { return Mirror; }
+			if(ui.button("Clamp")) { return Clamp; }
+		}
+		return value;
 	}
 
 }

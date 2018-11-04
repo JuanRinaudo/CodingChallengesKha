@@ -95,7 +95,7 @@ class SineCubesState extends AppState {
 	}
 
 	private inline function setupCube() {
-		cubeMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, cubesPipeline.vertexStructure, Color.White);
+		cubeMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, cubesPipeline, Color.White);
 	}
 
 	override public function render(backbuffer:Image) {
@@ -123,14 +123,11 @@ class SineCubesState extends AppState {
 		backbuffer.g4.setVector4(locationAmbientLight, new FastVector4(0, 0, 0, 1));
 
 		if(cubeColor != lastColor) {
-			BasicMesh.setAllVertexesColor(cubeMesh, cubesPipeline.vertexStructure, cubeColor);
+			BasicMesh.setAllVertexesColor(cubeMesh.vertexBuffer, cubesPipeline.vertexStructure, cubeColor);
 		}
 
 		var modelMatrix:FastMatrix4;
 		var mvpMatrix:FastMatrix4;
-		// var baseMatrix:FastMatrix4 = FastMatrix4.identity()
-			// .multmat(FastMatrix4.rotation(0, 0, Math.PI * .25))
-			// .multmat(FastMatrix4.rotation(Math.PI * .25, 0, 0));
 
 		var x:Float = 0;
 		var z:Float = 0;
@@ -173,10 +170,6 @@ class SineCubesState extends AppState {
 					if(ui.panel(Id.handle({selected: true}), "Cube Color")) {
 						cubeColor = Ext.colorPicker(ui, Id.handle({color: cubeColor}), false);
 					}
-					// timeMultiplier = ui.floatInput(Id.handle({text: '' + timeMultiplier}), "Time Multiplier");
-					// distanceMultiplier = ui.floatInput(Id.handle({text: '' + distanceMultiplier}), "Distance Multiplier");
-					// minValue = ui.floatInput(Id.handle({text: '' + minValue}), "Min Value");
-					// maxValue = ui.floatInput(Id.handle({text: '' + maxValue}), "Max Value");
 				}
 				if(ui.panel(Id.handle({selected: true}), "Lighting")) {
 					lightRotation = ui.check(Id.handle(), "Rotate Light");

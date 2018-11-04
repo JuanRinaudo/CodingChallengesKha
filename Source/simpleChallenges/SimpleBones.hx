@@ -59,7 +59,7 @@ class SimpleBones extends AppState {
 		cameraPosition = new Vector3(0, -10, 10);
 		characterPosition = new Vector3(0, 0, 0);
 
-		basicPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.striped_frag);
+	basicPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.striped_frag);
 		basicPipeline.compile();
 
 		animatedPipeline = new BasicPipeline(Shaders.texturedBones_vert, Shaders.textured_frag);
@@ -122,7 +122,7 @@ class SimpleBones extends AppState {
 		backbuffer.g4.clear(Color.Black, Math.POSITIVE_INFINITY);
 
 		animatedMesh.render(backbuffer);
-		
+
 		floor.render(backbuffer);
 
 		backbuffer.g4.end();
