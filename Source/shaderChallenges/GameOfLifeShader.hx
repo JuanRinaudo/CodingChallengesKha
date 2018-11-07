@@ -27,9 +27,13 @@ import kext.Application;
 import kext.AppState;
 import kha.graphics4.ConstantLocation;
 
-enum ShaderTypes {
-    GameOfLife;
-    GameOfLifeNoBranches;
+enum Pattern {
+    Blinker;
+    Grin;
+    Pole4;
+    Beacon;
+    Glider;
+    GliderGun;
 }
 
 class GameOfLifeShader extends AppState {
@@ -50,8 +54,12 @@ class GameOfLifeShader extends AppState {
     private var overpopulationLocation:ConstantLocation;
     private var populateLocation:ConstantLocation;
 
+    private var addOrRemove:Bool = true;
     private var running:Bool = false;
     private var checkHandle:Handle;
+    private var addOrRemoveHandle:Handle;
+
+    private var pattern:Pattern;
 
     private var updateCounter:Float = 0;
     private var updateTime:Float = 0.01;
@@ -79,13 +87,16 @@ class GameOfLifeShader extends AppState {
 
         ui.alwaysRedraw = true;
         checkHandle = Id.handle({selected: running});
+        addOrRemoveHandle = Id.handle({selected: addOrRemove});
+
+        pattern = Glider;
 
         camera = new Camera3D();
         camera.transform.setPosition(new Vector3(0, 0, -10));
         camera.lookAt(new FastVector3(0, 0, 0));
         camera.orthogonal(1, CANVAS_WIDTH / CANVAS_HEIGHT);
         Application.mainCamera = camera;
-        createPipeline(Shaders.gameOfLifeNoBranches_frag);
+        createPipeline(Shaders.gameOfLifeMathOnly_frag);
 
         pausedPipeline = new BasicPipeline(Shaders.textured_vert, Shaders.textured_frag, camera);
         pausedPipeline.compile();
@@ -114,6 +125,11 @@ class GameOfLifeShader extends AppState {
         screenQuad.textures = [texture];
     }
 
+    private function clearBuffers() {
+        textureBuffer.g2.begin(true);
+        textureBuffer.g2.end();
+    }
+
     override function update(delta:Float) {
         super.update(delta);
 
@@ -124,19 +140,77 @@ class GameOfLifeShader extends AppState {
             checkHandle.selected = running;
         }
 
+        if(Application.keyboard.keyPressed(C)) {
+            clearBuffers();
+        }
+        
+        if(Application.keyboard.keyPressed(One)) {
+            pattern = Blinker;
+        } else if(Application.keyboard.keyPressed(Two)) {
+            pattern = Grin;
+        } else if(Application.keyboard.keyPressed(Three)) {
+            pattern = Pole4;
+        } else if(Application.keyboard.keyPressed(Four)) {
+            pattern = Beacon;
+        } else if(Application.keyboard.keyPressed(Five)) {
+            pattern = Glider;
+        } else if(Application.keyboard.keyPressed(Six)) {
+            pattern = GliderGun;
+        }
+
         if(Application.mouse.buttonPressed(0)) {
             var mousePosition:Vector2 = Application.mouse.position;
             textureBuffer.g2.begin(false);
-            textureBuffer.g2.color = Color.White;
-            textureBuffer.g2.fillRect(mousePosition.x, mousePosition.y, 1, 1);
-            textureBuffer.g2.fillRect(mousePosition.x + 1, mousePosition.y + 1, 1, 1);
-            textureBuffer.g2.fillRect(mousePosition.x - 1, mousePosition.y + 2, 3, 1);
+            textureBuffer.g2.color = addOrRemove ? Color.White : Color.Black;
+            switch(pattern) {
+                case Blinker:
+                    textureBuffer.g2.fillRect(mousePosition.x, mousePosition.y, 1, 3);
+                case Grin:
+                    textureBuffer.g2.fillRect(mousePosition.x + 1, mousePosition.y, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x, mousePosition.y + 1, 1, 2);
+                    textureBuffer.g2.fillRect(mousePosition.x + 1, mousePosition.y + 3, 1, 1);
+                case Pole4:
+                    textureBuffer.g2.fillRect(mousePosition.x, mousePosition.y, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 2, mousePosition.y, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 2, mousePosition.y + 2, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 4, mousePosition.y + 2, 1, 1);
+                case Beacon:
+                    textureBuffer.g2.fillRect(mousePosition.x, mousePosition.y, 1, 2);
+                    textureBuffer.g2.fillRect(mousePosition.x + 1, mousePosition.y, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 3, mousePosition.y + 2, 1, 2);
+                    textureBuffer.g2.fillRect(mousePosition.x + 2, mousePosition.y + 3, 1, 1);
+                case Glider:
+                    textureBuffer.g2.fillRect(mousePosition.x, mousePosition.y, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 1, mousePosition.y + 1, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x - 1, mousePosition.y + 2, 3, 1);
+                case GliderGun:
+                    textureBuffer.g2.fillRect(mousePosition.x     , mousePosition.y + 4, 2, 2);
+                    textureBuffer.g2.fillRect(mousePosition.x + 34, mousePosition.y + 2, 2, 2);
+
+                    textureBuffer.g2.fillRect(mousePosition.x + 12, mousePosition.y + 2, 2, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 11, mousePosition.y + 3, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 10, mousePosition.y + 4, 1, 3);
+                    textureBuffer.g2.fillRect(mousePosition.x + 14, mousePosition.y + 5, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 11, mousePosition.y + 7, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 12, mousePosition.y + 8, 2, 1);
+
+                    textureBuffer.g2.fillRect(mousePosition.x + 15, mousePosition.y + 3, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 16, mousePosition.y + 4, 1, 3);
+                    textureBuffer.g2.fillRect(mousePosition.x + 17, mousePosition.y + 5, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 15, mousePosition.y + 7, 1, 1);
+
+                    textureBuffer.g2.fillRect(mousePosition.x + 24, mousePosition.y    , 1, 2);
+                    textureBuffer.g2.fillRect(mousePosition.x + 22, mousePosition.y + 1, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 20, mousePosition.y + 2, 2, 3);
+                    textureBuffer.g2.fillRect(mousePosition.x + 22, mousePosition.y + 5, 1, 1);
+                    textureBuffer.g2.fillRect(mousePosition.x + 24, mousePosition.y + 5, 1, 2);
+            }
             textureBuffer.g2.end();
         }
         if(Application.mouse.buttonDown(1)) {
             var mousePosition:Vector2 = Application.mouse.position;
             textureBuffer.g2.begin(false);
-            textureBuffer.g2.color = Color.White;
+            textureBuffer.g2.color = addOrRemove ? Color.White : Color.Black;
             GraphicsExtension.fillCircle(textureBuffer.g2, mousePosition.x, mousePosition.y, brushSize);
             textureBuffer.g2.end();
         }
@@ -148,6 +222,7 @@ class GameOfLifeShader extends AppState {
         if(running && updateCounter > updateTime) {
             screenQuad.pipeline = pipeline;
 
+            textureBuffer.g2.color = Color.White;
             for(i in 0...stepsPerUpdate) {
                 beginAndClear3D(backbuffer);
                 backbuffer.g4.setPipeline(pipeline);
@@ -185,8 +260,7 @@ class GameOfLifeShader extends AppState {
                 overpopulation = Math.floor(ui.slider(Id.handle({value: overpopulation}), "Overpopulation Threshold", 0, 8, true, 1));
                 populate = Math.floor(ui.slider(Id.handle({value: populate}), "Populate Threshold", 0, 8, true, 1));
                 if(ui.button("Clear")) {
-                    textureBuffer.g2.begin(true);
-                    textureBuffer.g2.end();
+                    clearBuffers();
                 }
                 brushSize = ui.slider(Id.handle({value: brushSize}), "Brush Size", 0, 100, true, 10);
                 samplingDelta = Math.floor(ui.slider(Id.handle({value: samplingDelta}), "Sampling Delta", 0, 100, true, 1));
@@ -198,12 +272,36 @@ class GameOfLifeShader extends AppState {
                     setupBuffers();
                 }
                 running = ui.check(checkHandle, "Running");
+                addOrRemove = ui.check(addOrRemoveHandle, "Add/Remove cells");
+                if(ui.panel(Id.handle(), "Spawn Pattern")) {
+                    if(ui.button("Blinker")) {
+                        pattern = Blinker;
+                    }
+                    if(ui.button("Grin")) {
+                        pattern = Grin;
+                    }
+                    if(ui.button("Pole4")) {
+                        pattern = Pole4;
+                    }
+                    if(ui.button("Beacon")) {
+                        pattern = Beacon;
+                    }
+                    if(ui.button("Glider")) {
+                        pattern = Glider;
+                    }
+                    if(ui.button("GliderGun")) {
+                        pattern = GliderGun;
+                    }
+                }
                 if(ui.panel(Id.handle(), "Shader")) {
                     if(ui.button("Game Of Life Normal")) {
                         createPipeline(Shaders.gameOfLife_frag);
                     }
                     if(ui.button("Game Of Life No Branches")) {
                         createPipeline(Shaders.gameOfLifeNoBranches_frag);
+                    }
+                    if(ui.button("Game Of Life Math Only")) {
+                        createPipeline(Shaders.gameOfLifeMathOnly_frag);
                     }
                 }
 			}
