@@ -58,12 +58,15 @@ class SimpleImageSlideshow extends AppState {
     private var nextSlide:SlideImage;
 
     private var camera:Camera3D;
+    private var pipelineIn:BasicPipeline;
     private var pipeline:BasicPipeline;
+    private var pipelineOut:BasicPipeline;
     private var screenQuad:BasicMesh;
 
     private var counter:Float = 0;
 
-    private var timeLocation:ConstantLocation;
+    private var inTimeLocation:ConstantLocation;
+    private var outTimeLocation:ConstantLocation;
 
     public function new() {
         super();
@@ -82,8 +85,10 @@ class SimpleImageSlideshow extends AppState {
         camera.orthogonal(1, CANVAS_WIDTH / CANVAS_HEIGHT);
         Application.mainCamera = camera;
         createPipeline(Shaders.textured_frag);
+        createPipelineIn(Shaders.textured_frag);
+        createPipelineOut(Shaders.textured_frag);
 
-        screenQuad = BasicMesh.createQuadMesh(new Vector3(1, -1, 0), new Vector3(-1, 1, 0), pipeline, Color.White);
+        screenQuad = BasicMesh.createQuadMesh(new Vector3(1, -1, 0), new Vector3(-1, 1, 0), pipelineIn, Color.White);
         screenQuad.textures = [new Texture(slide1.image, "TEXTURE"), new Texture(slide2.image, "NEXT_IMAGE")];
         screenQuad.setPipeline = false;
     }
@@ -92,8 +97,22 @@ class SimpleImageSlideshow extends AppState {
         pipeline = new BasicPipeline(Shaders.textured_vert, shader, camera);
         pipeline.basicTexture = false;
         pipeline.compile();
+    }
+    
+    private function createPipelineIn(shader:FragmentShader) {
+        pipelineIn = new BasicPipeline(Shaders.textured_vert, shader, camera);
+        pipelineIn.basicTexture = false;
+        pipelineIn.compile();
         
-        timeLocation = pipeline.getConstantLocation("TIME");
+        inTimeLocation = pipelineIn.getConstantLocation("TIME");
+    }
+    
+    private function createPipelineOut(shader:FragmentShader) {
+        pipelineOut = new BasicPipeline(Shaders.textured_vert, shader, camera);
+        pipelineOut.basicTexture = false;
+        pipelineOut.compile();
+        
+        outTimeLocation = pipelineOut.getConstantLocation("TIME");
     }
 
     override function update(delta:Float) {
@@ -109,8 +128,8 @@ class SimpleImageSlideshow extends AppState {
 
         screenQuad.transform.scaleY = currentSlide.image.height / currentSlide.image.width;
 
-        screenQuad.pipeline = pipeline;
-        backbuffer.g4.setPipeline(pipeline);
+        screenQuad.pipeline = pipelineIn;
+        backbuffer.g4.setPipeline(pipelineIn);
         backbuffer.g4.setFloat(timeLocation, counter);
         screenQuad.render(backbuffer);
 
