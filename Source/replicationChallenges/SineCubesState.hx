@@ -95,7 +95,7 @@ class SineCubesState extends AppState {
 	}
 
 	private inline function setupCube() {
-		cubeMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_stl, cubesPipeline, Color.White);
+		cubeMesh = BasicMesh.getSTLMesh(Assets.blobs.cube_obj, cubesPipeline, Color.White);
 	}
 
 	override public function render(backbuffer:Image) {

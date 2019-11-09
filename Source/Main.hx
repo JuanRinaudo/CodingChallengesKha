@@ -10,7 +10,8 @@ import kext.Application;
 // import shaderChallenges.PostProcessingShader;
 // import gameChallenges.SimpleCarGame;
 // import simpleChallenges.SimpleBones;
-import shaderChallenges.GameOfLifeShader;
+// import shaderChallenges.GameOfLifeShader;
+import shaderChallenges.FlowFieldShader;
 
 class Main {
 	private static var application:Application;
@@ -23,7 +24,8 @@ class Main {
 		// application = PostProcessingShader.initApplication(); //Challenge 005
 		// application = SimpleCarGame.initApplication(); //Challenge 006
 		// application = SimpleBones.initApplication(); //Challenge 007
-		application = GameOfLifeShader.initApplication(); //Challenge 008
+		// application = GameOfLifeShader.initApplication(); //Challenge 008
+		application = FlowFieldShader.initApplication(); //Challenge 009
 	}
 
 }

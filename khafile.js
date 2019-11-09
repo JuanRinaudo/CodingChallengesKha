@@ -5,7 +5,8 @@ project.addLibrary('kext');
 project.addLibrary('tweenxcore');
 
 project.addShaders('Assets/Shaders/**');
-project.addShaders('Assets/GameOfLife/**');
+project.addShaders('Assets/FlowField/**');
+// project.addShaders('Assets/GameOfLife/**');
 // project.addShaders('Assets/PostProcessingShaders/**');
 
 project.addAssets('Assets/Common/**');

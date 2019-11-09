@@ -17,4 +17,3 @@ set options=
 start /b /wait %opt% node Kha\make %target% %options% -g opengl
 
 echo ___________________________________
-PAUSE
