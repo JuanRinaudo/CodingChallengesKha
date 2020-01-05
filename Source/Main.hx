@@ -11,7 +11,8 @@ import kext.Application;
 // import gameChallenges.SimpleCarGame;
 // import simpleChallenges.SimpleBones;
 // import shaderChallenges.GameOfLifeShader;
-import shaderChallenges.FlowFieldShader;
+// import shaderChallenges.FlowFieldShader;
+import replicationChallenges.LeParcNoodles;
 
 class Main {
 	private static var application:Application;
@@ -25,7 +26,8 @@ class Main {
 		// application = SimpleCarGame.initApplication(); //Challenge 006
 		// application = SimpleBones.initApplication(); //Challenge 007
 		// application = GameOfLifeShader.initApplication(); //Challenge 008
-		application = FlowFieldShader.initApplication(); //Challenge 009
+		// application = FlowFieldShader.initApplication(); //Challenge 009
+		application = LeParcNoodles.initApplication(); //Challenge 010
 	}
 
 }
