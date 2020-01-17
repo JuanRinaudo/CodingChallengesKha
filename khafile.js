@@ -12,7 +12,8 @@ project.addShaders('Assets/FlowField/**');
 project.addAssets('Assets/Common/**');
 
 // project.addAssets('Assets/Images/**');
-project.addAssets('Assets/BasicGeometry/**');
+// project.addDefine('DEMO_MESHES');
+// project.addAssets('Assets/BasicGeometry/**');
 // project.addAssets('Assets/Models/**');
 // project.addAssets('Assets/Bones/**');
 

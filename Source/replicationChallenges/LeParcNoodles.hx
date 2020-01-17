@@ -22,7 +22,6 @@ import kha.math.FastMatrix4;
 import kha.math.FastVector3;
 import kha.math.FastVector4;
 
-import zui.Ext;
 import zui.Id;
 
 class LeParcNoodles extends AppState {    
@@ -101,44 +100,6 @@ class LeParcNoodles extends AppState {
 		locationTintColor = pipeline.getConstantLocation("TINT_COLOR");
 	}
 
-	override public function render(backbuffer:Image) {
-		beginAndClear3D(backbuffer, Color.fromBytes(85, 85, 85));
-		
-		if(vertexBuffer != null && circleVertexBuffer != null) {
-			var containerSize:Vector2 = new Vector2(Application.width * (1 - padding.x * 2), Application.height * (1 - padding.y * 2));
-			var delta:Vector2 = new Vector2(containerSize.x / (noodles.x - 1), containerSize.y / (noodles.y - 1));
-			var position:Vector2 = new Vector2(0, Application.height * padding.x);
-
-			if(noodles.y == 1) { position.y = Application.height * 0.5; }
-
-			var noodleCount:Int = 0;
-			var rowCount:Int = 0;
-			for(y in 0...noodles.y) {
-				if(noodles.x == 1) { position.x = Application.width * 0.5; }
-				else { position.x = Application.width * padding.x; }
-				
-				for(x in 0...noodles.x) {
-					if(mainColors.length < noodleCount) {
-						var mainColor:Color = Color.fromFloats(Math.random() * (maxColor - minColor) + minColor,
-							Math.random() * (maxColor - minColor) + minColor,
-							Math.random() * (maxColor - minColor) + minColor);
-						mainColors.push(mainColor);
-						secondaryColors.push(Color.fromFloats(mainColor.R * 0.75, mainColor.G * 0.75, mainColor.B * 0.75));
-					}
-
-					drawNoodle(backbuffer, position.x - rowOffsetX * (rowCount % 2 == 0 ? -1 : 1), position.y, noodleSize, movementDelta, mainColors[noodleCount], secondaryColors[noodleCount], Application.time + (offsetByRow ? rowCount : noodleCount) * offsetDelta);
-					position.x += delta.x;
-
-					noodleCount++;
-				}
-				rowCount++;
-				position.y += delta.y;
-			}
-		}
-
-        end3D(backbuffer);
-	}
-
 	private function generateNoodleBuffer()
 	{		
 		var steps = Math.ceil(Application.height / trailYDelta * 2);
@@ -184,6 +145,44 @@ class LeParcNoodles extends AppState {
 		indexes.set(index + 1, topCircleResolution);
 		indexes.set(index + 2, 1);
 		circleIndexBuffer.unlock();
+	}
+
+	override public function render(backbuffer:Image) {
+		beginAndClear3D(backbuffer, Color.fromBytes(85, 85, 85));
+		
+		if(vertexBuffer != null && circleVertexBuffer != null) {
+			var containerSize:Vector2 = new Vector2(Application.width * (1 - padding.x * 2), Application.height * (1 - padding.y * 2));
+			var delta:Vector2 = new Vector2(containerSize.x / (noodles.x - 1), containerSize.y / (noodles.y - 1));
+			var position:Vector2 = new Vector2(0, Application.height * padding.x);
+
+			if(noodles.y == 1) { position.y = Application.height * 0.5; }
+
+			var noodleCount:Int = 0;
+			var rowCount:Int = 0;
+			for(y in 0...noodles.y) {
+				if(noodles.x == 1) { position.x = Application.width * 0.5; }
+				else { position.x = Application.width * padding.x; }
+				
+				for(x in 0...noodles.x) {
+					if(mainColors.length < noodleCount) {
+						var mainColor:Color = Color.fromFloats(Math.random() * (maxColor - minColor) + minColor,
+							Math.random() * (maxColor - minColor) + minColor,
+							Math.random() * (maxColor - minColor) + minColor);
+						mainColors.push(mainColor);
+						secondaryColors.push(Color.fromFloats(mainColor.R * 0.75, mainColor.G * 0.75, mainColor.B * 0.75));
+					}
+
+					drawNoodle(backbuffer, position.x - rowOffsetX * (rowCount % 2 == 0 ? -1 : 1), position.y, noodleSize, movementDelta, mainColors[noodleCount], secondaryColors[noodleCount], Application.time + (offsetByRow ? rowCount : noodleCount) * offsetDelta);
+					position.x += delta.x;
+
+					noodleCount++;
+				}
+				rowCount++;
+				position.y += delta.y;
+			}
+		}
+
+        end3D(backbuffer);
 	}
 	
 	private function drawNoodle(backbuffer:Image, startX:Float, startY:Float, radius:Float, moveDelta:Vector2, topColor:Color, bottomColor:Color, offsetY:Float)

@@ -11,7 +11,11 @@ import zui.Zui;
 import zui.Ext;
 import zui.Id;
 
+using tweenxcore.Tools;
+
 class ZUIUtils {
+
+	private static var easingFunctions:Array<String> = [ "linear", "sineIn", "sineOut", "sineInOut", "sineOutIn", "quadIn", "quadOut", "quadInOut", "quadOutIn", "cubicIn", "cubicOut", "cubicInOut", "cubicOutIn", "quartIn", "quartOut", "quartInOut", "quartOutIn", "quintIn", "quintOut", "quintInOut", "quintOutIn", "expoIn", "expoOut", "expoInOut", "expoOutIn", "circIn", "circOut", "circInOut", "circOutIn", "bounceIn", "bounceOut", "bounceInOut", "bounceOutIn", "backIn", "backOut", "backInOut", "backOutIn", "elasticIn", "elasticOut", "elasticInOut", "elasticOutIn", "warpOut", "warpIn", "warpInOut", "warpOutIn" ];
 
 	public static inline function vector2Sliders(ui:Zui, handle: Handle, vector:Vector2, label:String, from:Float, to:Float, precision:Int) {
 		vector.x = ui.slider(handle.nest(0, {value: vector.x}), '$label X', from, to, true, precision, true);
@@ -49,6 +53,7 @@ class ZUIUtils {
 		}
 	}
 
+#if DEMO_MESHES
 	public static function meshSelector(ui:Zui, handle: Handle, lastValue:BasicMesh, selected:Bool = true):BasicMesh {
 		if(ui.panel(handle.nest(0, {selected: selected}), "Mesh Type")) {
 			if(ui.button("Quad")) { return DemoMeshes.QUAD; }
@@ -60,6 +65,7 @@ class ZUIUtils {
 		}
 		return null;
 	}
+#end
 
 	public static function textureAddresing(ui:Zui, handle: Handle, value:TextureAddressing, label:String = null, selected:Bool = false):TextureAddressing {
 		if(ui.panel(handle.nest(0, {selected: selected}), label == null ? "Texture Addressing" : label)) {
@@ -68,6 +74,24 @@ class ZUIUtils {
 			if(ui.button("Clamp")) { return Clamp; }
 		}
 		return value;
+	}
+
+	public static function tweenEasing(ui:Zui, handle: Handle, label:String = null, selected:Bool = false):Int
+	{
+		var easingIndex:Int = Math.floor(handle.value);
+		ui.text(label, Align.Center);
+		easingIndex = Math.floor(ui.slider(handle, easingFunctions[easingIndex], 0, easingFunctions.length - 1, false, 1, false, Align.Right, false));
+		return easingIndex;
+	}
+
+	public static function getEasingByIndex(index:Int):Float -> Float
+	{
+		return Reflect.field(Easing, easingFunctions[index]);
+	}
+
+	public static function callEasingByIndex(index:Int, value:Float):Float
+	{
+		return Reflect.callMethod(Easing, Reflect.field(Easing, easingFunctions[index]), [value]);
 	}
 
 }
